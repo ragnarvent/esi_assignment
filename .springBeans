@@ -7,7 +7,7 @@
 	</configSuffixes>
 	<enableImports><![CDATA[false]]></enableImports>
 	<configs>
-		<config>java:math.ut.ee.RentitApplication</config>
+		<config>java:rentit.com.RentitApplication</config>
 	</configs>
 	<autoconfigs>
 	</autoconfigs>
