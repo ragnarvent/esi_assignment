@@ -8,7 +8,6 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -26,7 +25,6 @@ import lombok.ToString;
 public class PlantInvEntry {
 	
 	@Id
-	@GeneratedValue
 	private long id;
 	
 	private String name;

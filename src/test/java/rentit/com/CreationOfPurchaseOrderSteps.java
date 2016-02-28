@@ -1,7 +1,13 @@
 package rentit.com;
 
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationContextLoader;
@@ -15,17 +21,20 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlDateInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlTableDataCell;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
-import cucumber.api.PendingException;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import rentit.com.RentitApplication;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.inventory.domain.PlantInvEntryRepository;
+import rentit.com.inventory.domain.PlantInvItem;
+import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
+import rentit.com.inventory.domain.PlantInvItemRepository;
+import rentit.com.inventory.domain.PlantReservationRepository;
 import rentit.com.sales.domain.PurchaseOrderRepository;
 
 @ContextConfiguration(classes = { RentitApplication.class,
@@ -37,13 +46,20 @@ public class CreationOfPurchaseOrderSteps {
 	private WebApplicationContext wac;
 
 	private WebClient customerBrowser;
-	HtmlPage customerPage;
+	private HtmlPage customerPage;
 
 	@Autowired
-	PlantInvEntryRepository plantRepo;
+	private PlantInvEntryRepository plantEntryRepo;
+	
 	@Autowired
-	PurchaseOrderRepository poRepo;
+	private PlantInvItemRepository plantItemRepo;
+	
+	@Autowired
+	private PurchaseOrderRepository poRepo;
 
+	@Autowired
+	private PlantReservationRepository reservationRepo;
+	
 	@Before
 	public void setUp() {
 		customerBrowser = MockMvcWebClientBuilder.webAppContextSetup(wac).build();
@@ -52,22 +68,25 @@ public class CreationOfPurchaseOrderSteps {
 	@After
 	public void tearOff() {
 		poRepo.deleteAll();
-		plantRepo.deleteAll();
+		reservationRepo.deleteAll();
+		plantItemRepo.deleteAll();
+		plantEntryRepo.deleteAll();
 	}
 
 	@Given("^the following plants are currently available for rental$")
 	public void the_following_plants_are_currently_available_for_rental(List<PlantInvEntry> plants)
 			throws Throwable {
-		plantRepo.save(plants);
+		plantEntryRepo.save(plants);
+		plantItemRepo.save(plants.stream().map(p->PlantInvItem.of(String.valueOf(UUID.randomUUID().toString()),EquipmentCondition.SERVICEABLE,p)).collect(Collectors.toList()));
 	}
 
 	@Given("^a customer is in the \"([^\"]*)\" web page$")
 	public void a_customer_is_in_the_web_page(String pageTitle) throws Throwable {
 		customerPage = customerBrowser.getPage("http://localhost/dashboard/catalog/form");
 	}
-
-	@Given("^No Plant Hire Request exists in the system$")
-	public void no_Plant_Hire_Request_exists_in_the_system() throws Throwable {
+	
+	@Given("^no purchase order exists in the system$")
+	public void no_purchase_order_exists_in_the_system() throws Throwable {
 	}
 
 	@When("^the customer queries the plant catalog for an \"([^\"]*)\" available from \"([^\"]*)\" to \"([^\"]*)\"$")
@@ -89,19 +108,25 @@ public class CreationOfPurchaseOrderSteps {
 	@Then("^(\\d+) plants are shown$")
 	public void plants_are_shown(int numberOfPlants) throws Throwable {
 		List<?> rows = customerPage.getByXPath("//tr[contains(@class, 'table-row')]");
-		// Complete this step and do not forget to remove the following line
-		throw new PendingException();
+		assertThat(rows.size(), equalTo(numberOfPlants));
 	}
 
 	@When("^the customer selects a \"([^\"]*)\"$")
 	public void the_customer_selects_a(String plantDescription) throws Throwable {
 		List<?> buttons = customerPage.getByXPath(String.format("//tr[./td = '%s']//button", plantDescription));
-		throw new PendingException();
+		assertThat(buttons.size(), equalTo(1));
+		HtmlButton createPo = (HtmlButton)buttons.get(0);
+		customerPage = createPo.click();
 	}
 
 	@Then("^a purchase order should be created with a total price of (\\d+\\.\\d+)$")
 	public void a_purchase_order_should_be_created_with_a_total_price_of(BigDecimal total) throws Throwable {
-		// Complete this step and do not forget to remove the following line
-		throw new PendingException();
+		List<?> cells = customerPage.getByXPath("//tr[contains(.,'Cost')]//td[last()]");
+		assertThat(cells.size(), equalTo(1));
+		
+		HtmlTableDataCell costCell = (HtmlTableDataCell)cells.get(0);
+		BigDecimal val = new BigDecimal(costCell.getTextContent());
+		
+		assertTrue(total.compareTo(val) == 0);
 	}
 }

@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import rentit.com.common.InvalidException;
+import rentit.com.common.RentitException;
 import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.domain.PlantInvItem;
 import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
@@ -19,20 +19,20 @@ import rentit.com.sales.application.IdentifierFactory;
 public class InventoryService {
 	
 	@Autowired
-	PlantInvItemRepository plantItemRepo;
+	private PlantInvItemRepository plantItemRepo;
 	
 	@Autowired
-	PlantReservationRepository reservationRepo;
+	private PlantReservationRepository reservationRepo;
 	
 	@Autowired
-	IdentifierFactory idFactory;
+	private IdentifierFactory idFactory;
 
-	public PlantReservation reservePlant(long poId, long plantEntryId, BusinessPeriod rentalPeriod) throws InvalidException {
+	public PlantReservation reservePlant(long poId, long plantEntryId, BusinessPeriod rentalPeriod) throws RentitException {
 		//Find all available plant items and filter out the ones that are not serviceable(could also be done with SQL)
 		List<PlantInvItem> plantItems = plantItemRepo.findAvailablePlantItems(plantEntryId, rentalPeriod.getStartDate(), rentalPeriod.getEndDate())
 											.stream().filter(p->p.getCondition() == EquipmentCondition.SERVICEABLE).collect(Collectors.toList());
 		if(plantItems.isEmpty()){
-			throw new InvalidException(String.format("No servicable plants avilable for period (%s to %s)", rentalPeriod.getStartDate(), rentalPeriod.getEndDate()));
+			throw new RentitException(String.format("No servicable plants available for period (%s to %s)", rentalPeriod.getStartDate(), rentalPeriod.getEndDate()));
 		}
 		
 		//Create new reservation for first available plant

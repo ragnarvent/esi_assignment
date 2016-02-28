@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -21,7 +20,7 @@ public class Customer {
 	@GeneratedValue
 	private long id;
 	
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "customer")
+	@OneToMany( mappedBy = "customer" )
 	private List<PurchaseOrder> orders;
 	
 	@Embedded

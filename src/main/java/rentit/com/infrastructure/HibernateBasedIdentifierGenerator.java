@@ -23,10 +23,10 @@ import org.springframework.stereotype.Service;
 @SuppressWarnings("deprecation")
 @Service
 public class HibernateBasedIdentifierGenerator {
-	SessionFactory sessionFactory;
-	Dialect dialect;
-	Map<String, SequenceGenerator> generators = new HashMap<>();
-	ObjectNameNormalizer nameNormalizer;
+	private final SessionFactory sessionFactory;
+	private final Dialect dialect;
+	private final Map<String, SequenceGenerator> generators = new HashMap<>();
+	private final ObjectNameNormalizer nameNormalizer;
 
 	@Autowired
 	public HibernateBasedIdentifierGenerator(EntityManagerFactory emf) throws SQLException {

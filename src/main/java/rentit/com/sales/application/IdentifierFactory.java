@@ -7,8 +7,9 @@ import rentit.com.infrastructure.HibernateBasedIdentifierGenerator;
 
 @Service
 public class IdentifierFactory {
-    @Autowired
-    HibernateBasedIdentifierGenerator idGenerator;
+    
+	@Autowired
+    private HibernateBasedIdentifierGenerator idGenerator;
 
     public long nextPurchaseOrderID() {
         return idGenerator.getID("PurchaseOrderIDSequence");

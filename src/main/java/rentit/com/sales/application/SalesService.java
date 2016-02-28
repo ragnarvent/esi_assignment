@@ -4,55 +4,58 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.DataBinder;
 
-import rentit.com.common.InvalidException;
+import rentit.com.common.RentitException;
 import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.application.InventoryService;
 import rentit.com.inventory.domain.PlantReservation;
 import rentit.com.sales.domain.PurchaseOrder;
 import rentit.com.sales.domain.PurchaseOrder.POStatus;
 import rentit.com.sales.domain.PurchaseOrderRepository;
+import rentit.com.sales.validation.BusinessPeriodValidator;
 import rentit.com.sales.validation.PurchaseOrderValidator;
 
 @Service
 public class SalesService {
 	
 	@Autowired
-	IdentifierFactory idFactory;
+	private IdentifierFactory idFactory;
 	
 	@Autowired
-	InventoryService inventoryService;
+	private InventoryService inventoryService;
 
 	@Autowired
-	PurchaseOrderRepository poRepo;
+	private PurchaseOrderRepository poRepo;
 	
-	public PurchaseOrder createAndProcessPO(long plantId, BusinessPeriod rentalPeriod) throws InvalidException {
+	public PurchaseOrder createAndProcessPO(long plantId, BusinessPeriod rentalPeriod) throws RentitException {
 		PurchaseOrder po = PurchaseOrder.of(idFactory.nextPurchaseOrderID(), plantId, rentalPeriod);
 		
-		validatePO(po);
+		validatePO(po); // pre-validate
 		
 		poRepo.save(po); //Save valid PO
 
 		reservePO(po);
+		
+		validatePO(po); // post-validate 
 		
 		poRepo.save(po); //Save PO after successful reservation
 		
 		return po;
 	}
 
-	private void reservePO(PurchaseOrder po) throws InvalidException {
+	private void reservePO(PurchaseOrder po) throws RentitException {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
-		po.getReservations().add(reservation);
-		po.setTotal(reservation.getPlant().getPlantInfo().getPrice()); //In the simplified scenario we reserve only one plant, thus the price of one plant
+		po.setReservationId(reservation.getId());
+		po.setTotal(reservation.calculateTotalCost());
 		po.setStatus(POStatus.OPEN);
 	}
 
-	private void validatePO(PurchaseOrder po) throws InvalidException {
+	private void validatePO(PurchaseOrder po) throws RentitException {
 		DataBinder binder = new DataBinder(po);
-		binder.addValidators(new PurchaseOrderValidator());
+		binder.addValidators(new PurchaseOrderValidator(new BusinessPeriodValidator()));
 		binder.validate();
 		
-		if(binder.getBindingResult().hasErrors()){
-			throw new InvalidException(binder.getBindingResult().getFieldError().toString()); //Alternatively we could list all the errors in PO fields
+		if(binder.getBindingResult().hasFieldErrors()){
+			throw new RentitException(binder.getBindingResult().getFieldError().getDefaultMessage()); //Alternatively we could list all the errors in PO fields
 		}
 	}
 }

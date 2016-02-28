@@ -1,0 +1,53 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>List all Plants</title>
+
+<link rel="stylesheet"
+	href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"></link>
+</head>
+<body>
+
+	<div class="container">
+		<div class="panel panel-default">
+			<div class="panel-heading">Purchase order details</div>
+
+			<table class="table">
+				<tbody>
+					<tr>
+						<td>Plant name</td>
+						<td th:text="${po.name}"></td>
+					</tr>
+					<tr>
+						<td>Plant description</td>
+						<td th:text="${po.description}"></td>
+					</tr>
+					<tr>
+						<td>Start date</td>
+						<td th:text="${po.rentalPeriod.startDate}"></td>
+					</tr>
+					<tr>
+						<td>End date</td>
+						<td th:text="${po.rentalPeriod.endDate}"></td>
+					</tr>
+					<tr>
+						<td>Cost</td>
+						<td th:text="${po.cost}"></td>
+					</tr>
+					<tr>
+						<td>Status</td>
+						<td th:text="${po.status}"></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="panel-body"></div>
+		</div>
+	</div>
+
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script
+		src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,13 +1,15 @@
 package rentit.com.inventory.domain;
 
 
+import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
+
 import javax.jdo.annotations.PersistenceCapable;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -32,9 +34,8 @@ public class PlantReservation {
 	
 	@OneToOne(optional=true)
 	@JoinColumn(name="maintplan_id")
-	private MaintenancePlan maintPlan;
+	private MaintenancePlan maintPlan; //TODO: replace with ID field
 	
-	@ManyToOne(optional=true)
 	@Column(name="rental_id")
 	private Long rentalId;
 	
@@ -44,5 +45,10 @@ public class PlantReservation {
 		r.setPlant(plantItem);
 		r.setRentalPeriod(rentalPeriod);
 		return r;
+	}
+	
+	public BigDecimal calculateTotalCost() {
+		//End exclusive, so add +1
+		return plant.getPlantInfo().getPrice().multiply(BigDecimal.valueOf(ChronoUnit.DAYS.between(rentalPeriod.getStartDate(), rentalPeriod.getEndDate())+1));
 	}
 }

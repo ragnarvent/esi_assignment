@@ -1,6 +1,8 @@
 package rentit.com.web.dto;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -12,16 +14,18 @@ import rentit.com.sales.domain.PurchaseOrder;
 @Service
 public class DTOAssembler {
 	
-	public List<PlantInvEntryDTO> plantEntriesToDTO(List<PlantInvEntry> entries){
-		return entries.stream().map(e->PlantInvEntryDTO.of(e.getId(), e.getName(), e.getDescription(), e.getPrice())).collect(Collectors.toList());
+	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	
+	public Collection<PlantInvEntryDTO> plantEntriesToDTO(Collection<PlantInvEntry> entries){
+		return entries.stream().map(e->PlantInvEntryDTO.of(e.getId(), e.getName(), e.getDescription(), e.getPrice())).collect(Collectors.toSet());
 	}
 	
 	public BusinessPeriod businessPeriodFromDTO(BusinessPeriodDTO periodDTO){
-		return BusinessPeriod.of(periodDTO.getStartDate(), periodDTO.getEndDate() );
+		return BusinessPeriod.of(LocalDate.parse(periodDTO.getStartDate(), formatter), LocalDate.parse(periodDTO.getEndDate()) );
 	}
 	
 	public BusinessPeriodDTO businessPeriodToDTO(BusinessPeriod period){
-		return BusinessPeriodDTO.of(period.getStartDate(), period.getEndDate() );
+		return BusinessPeriodDTO.of(period.getStartDate().toString(), period.getEndDate().toString() );
 	}
 	
 	public PurchaseOrderDTO purchaseOrderToDTO(PurchaseOrder po, String name, String description) {

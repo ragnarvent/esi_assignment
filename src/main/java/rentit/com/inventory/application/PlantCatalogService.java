@@ -1,6 +1,6 @@
 package rentit.com.inventory.application;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,10 +13,9 @@ import rentit.com.inventory.domain.PlantInvEntryRepository;
 public class PlantCatalogService {
 	
 	@Autowired
-	PlantInvEntryRepository plantEntryRepo;
+	private PlantInvEntryRepository plantEntryRepo;
 	
-	public List<PlantInvEntry> findAvailablePlants( String name, BusinessPeriod period){
-		//Validate business period??
+	public Collection<PlantInvEntry> findAvailablePlants( String name, BusinessPeriod period){
 		return plantEntryRepo.findAvailablePlants(name, period.getStartDate(), period.getEndDate());
 	}
 }

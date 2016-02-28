@@ -9,15 +9,12 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import lombok.Data;
 import rentit.com.common.domain.BusinessPeriod;
-import rentit.com.inventory.domain.PlantReservation;
 
 @Entity
 @Data
@@ -31,8 +28,8 @@ public class PurchaseOrder {
 	@Id
 	private long id;
 	
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "rental")
-	private List<PlantReservation> reservations;
+	@Column(name="reservation_id")
+	private long reservationId;
 	
 	@Column(name="plant_entry_id")
 	private long plantEntryId;

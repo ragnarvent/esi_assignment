@@ -1,51 +1,58 @@
 package rentit.com.controllers;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import rentit.com.common.InvalidException;
+import rentit.com.common.RentitException;
 import rentit.com.inventory.application.PlantCatalogService;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.sales.application.SalesService;
 import rentit.com.sales.domain.PurchaseOrder;
+import rentit.com.web.dto.BusinessPeriodDTO;
 import rentit.com.web.dto.CatalogQueryDTO;
 import rentit.com.web.dto.DTOAssembler;
-import rentit.com.web.dto.PurchaseOrderDTO;
 
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController {
 
 	@Autowired
-	PlantCatalogService plantCatalog;
+	private PlantCatalogService plantCatalog;
 
 	@Autowired
-	SalesService salesService;
+	private SalesService salesService;
 	
 	@Autowired
-	DTOAssembler dtoAssembler;
+	private DTOAssembler dtoAssembler;
 	
-	@RequestMapping("/catalog/query")
+	@RequestMapping("catalog/form")
+	String queryForm(Model model) {
+		model.addAttribute("catalogQuery", new CatalogQueryDTO());
+		return "dashboard/catalog/query-form";
+	}
+	
+	@RequestMapping("catalog/query")
 	String executeQuery(CatalogQueryDTO query, Model model) {
-		List<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), dtoAssembler.businessPeriodFromDTO(query.getRentalPeriod()));
+		Collection<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), dtoAssembler.businessPeriodFromDTO(query.getRentalPeriod()));
 		model.addAttribute("plants", dtoAssembler.plantEntriesToDTO(entries));
+		model.addAttribute("rentalPeriod", query.getRentalPeriod());
+		
 		return "dashboard/catalog/query-result";
 	}
 
 	@RequestMapping("/orders")
-	String createPO(PurchaseOrderDTO poDTO, Model model) {
-		PurchaseOrder po;
+	String createPO(String plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) {
 		try {
-			po = salesService.createAndProcessPO(poDTO.getPlantId(), dtoAssembler.businessPeriodFromDTO(poDTO.getRentalPeriod()));
-			model.addAttribute("order", dtoAssembler.purchaseOrderToDTO(po, poDTO.getName(), poDTO.getDescription()));
-		} catch (InvalidException e) {
-			//TODO:Build and return appropriate message for end user
+			PurchaseOrder po = salesService.createAndProcessPO(Long.valueOf(plantId), dtoAssembler.businessPeriodFromDTO(rentalPeriod));
+			model.addAttribute("po", dtoAssembler.purchaseOrderToDTO(po, plantName, plantDescription));
+		} catch (RentitException e) {
+			//TODO: Build and return appropriate message for end user
 		}
 		
-		return "redirect:/dashboard";
+		return "dashboard/catalog/order";
 	}
 }

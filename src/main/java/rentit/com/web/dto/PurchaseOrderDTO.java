@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import rentit.com.sales.domain.PurchaseOrder.POStatus;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor(staticName="of")
 public class PurchaseOrderDTO {
 	private long plantId;
