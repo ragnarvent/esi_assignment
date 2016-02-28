@@ -13,4 +13,8 @@ public class IdentifierFactory {
     public long nextPurchaseOrderID() {
         return idGenerator.getID("PurchaseOrderIDSequence");
     }
+    
+    public long nextPlantReservationID(){
+    	return idGenerator.getID("PlantReservationSequence");
+    }
 }

@@ -14,7 +14,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
-import rentit.com.common.BusinessPeriod;
+import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.domain.PlantReservation;
 
 @Entity

@@ -5,8 +5,8 @@ import java.time.LocalDate;
 import com.mysema.query.jpa.JPASubQuery;
 import com.mysema.query.types.expr.BooleanExpression;
 
-import rentit.com.common.BusinessPeriod;
 import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
+import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.domain.QPlantInvEntry;
 import rentit.com.inventory.domain.QPlantInvItem;
 import rentit.com.inventory.domain.QPlantReservation;

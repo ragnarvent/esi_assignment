@@ -10,16 +10,13 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
-import rentit.com.common.BusinessPeriod;
-import rentit.com.inventory.domain.PlantInvEntry;
+import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.domain.PlantReservation;
 
 @Entity
@@ -32,14 +29,13 @@ public class PurchaseOrder {
 	}
 
 	@Id
-	@GeneratedValue
 	private long id;
 	
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "rental")
 	private List<PlantReservation> reservations;
 	
-	@OneToOne
-	private PlantInvEntry plant;
+	@Column(name="plant_entry_id")
+	private long plantEntryId;
 
 	@ManyToOne
 	private Customer customer;
@@ -55,12 +51,21 @@ public class PurchaseOrder {
 	private POStatus status;
 	
 	@Embedded
-	private Address address;
+	private Address siteAddr;
 	
 	@Embedded
-	private Comment comment;
+	private List<Comment> notes;
 	
 	@Embedded
 	private BusinessPeriod rentalPeriod;
 	
+	public static PurchaseOrder of(long id, long plantEntryId, BusinessPeriod rentalPeriod){
+		PurchaseOrder po = new PurchaseOrder();
+		po.setId(id);
+		po.setPlantEntryId(plantEntryId);
+		po.setRentalPeriod(rentalPeriod);
+		po.setStatus(POStatus.PENDING);
+		po.setIssueDate(LocalDate.now());
+		return po;
+	}
 }

@@ -1,0 +1,53 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>List all Plants</title>
+
+<link rel="stylesheet"
+	href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"></link>
+</head>
+<body>
+
+	<div class="container">
+		<div class="panel panel-default">
+			<div class="panel-heading">Purchase order details</div>
+
+			<table class="table">
+				<tbody>
+					<tr>
+						<td>Plant name</td>
+						<td>{order.name}</td>
+					</tr>
+					<tr>
+						<td>Plant description</td>
+						<td>{order.description}</td>
+					</tr>
+					<tr>
+						<td>Start date</td>
+						<td>{order.rentalPeriod.startDate}</td>
+					</tr>
+					<tr>
+						<td>End date</td>
+						<td>{order.rentalPeriod.endDate}</td>
+					</tr>
+					<tr>
+						<td>Cost</td>
+						<td>{order.cost}</td>
+					</tr>
+					<tr>
+						<td>Status</td>
+						<td>{order.status}</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="panel-body"></div>
+		</div>
+	</div>
+
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script
+		src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+</body>
+</html>

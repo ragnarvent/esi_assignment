@@ -16,4 +16,9 @@ public interface PlantInvItemRepository extends JpaRepository<PlantInvItem, Long
 	
 	@Query("select p from PlantInvItem p where p not in (select t.plant from PlantReservation t where t.rentalPeriod.startDate > ?1 )")
 	public List<PlantInvItem> queryUnhiredPlant(LocalDate date);
+	
+	@Query("select p from PlantInvItem p where p.plantInfo.id = ?1 and p.id not in (select t.plant.id from PlantReservation t where "
+			+ "( ?2 BETWEEN t.rentalPeriod.startDate and t.rentalPeriod.endDate ) or ( ?3 BETWEEN t.rentalPeriod.startDate and t.rentalPeriod.endDate )) ")
+	public List<PlantInvItem> findAvailablePlantItems( long plantEntryId, LocalDate startDate, LocalDate endDate);
+
 }

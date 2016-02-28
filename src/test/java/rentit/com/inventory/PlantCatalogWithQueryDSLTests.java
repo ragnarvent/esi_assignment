@@ -28,16 +28,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.google.common.collect.Lists;
 
 import rentit.com.RentitApplication;
-import rentit.com.common.BusinessPeriod;
+import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.domain.MaintenancePlanRepository;
 import rentit.com.inventory.domain.MaintenanceTaskRepository;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.inventory.domain.PlantInvEntryRepository;
 import rentit.com.inventory.domain.PlantInvItem;
+import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
 import rentit.com.inventory.domain.PlantInvItemRepository;
 import rentit.com.inventory.domain.PlantReservation;
 import rentit.com.inventory.domain.PlantReservationRepository;
-import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
 import rentit.com.maintenance.domain.MaintenancePlan;
 import rentit.com.maintenance.domain.MaintenanceTask;
 

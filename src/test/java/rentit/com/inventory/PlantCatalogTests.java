@@ -20,16 +20,16 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rentit.com.RentitApplication;
-import rentit.com.common.BusinessPeriod;
+import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.domain.MaintenancePlanRepository;
 import rentit.com.inventory.domain.MaintenanceTaskRepository;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.inventory.domain.PlantInvEntryRepository;
 import rentit.com.inventory.domain.PlantInvItem;
+import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
 import rentit.com.inventory.domain.PlantInvItemRepository;
 import rentit.com.inventory.domain.PlantReservation;
 import rentit.com.inventory.domain.PlantReservationRepository;
-import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
 import rentit.com.sales.domain.PurchaseOrder;
 import rentit.com.sales.domain.PurchaseOrderRepository;
 
@@ -77,14 +77,14 @@ public class PlantCatalogTests {
 
 		//Create new purchase order
 		PurchaseOrder po = new PurchaseOrder();
-		po.setPlant(p);
+		po.setPlantEntryId(p.getId());
 		po.setRentalPeriod(rentalPeriod);
 		poRepo.save(po);
 		
 		//Create Reserve period
 		PlantReservation pReserve = new PlantReservation();
 		pReserve.setPlant(p.getItems().get(0));
-		pReserve.setRental(po);
+		pReserve.setRentalId(po.getId());
 		pReserve.setRentalPeriod(rentalPeriod);
 		plantReserve.save(pReserve);
 		
