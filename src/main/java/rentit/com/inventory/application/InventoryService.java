@@ -27,7 +27,7 @@ public class InventoryService {
 	@Autowired
 	private IdentifierFactory idFactory;
 
-	public PlantReservation reservePlant(long poId, long plantEntryId, BusinessPeriod rentalPeriod) throws RentitException {
+	public PlantReservation reservePlant(long poId, long plantEntryId, BusinessPeriod rentalPeriod) {
 		//Find all available plant items and filter out the ones that are not serviceable(could also be done with SQL)
 		List<PlantInvItem> plantItems = plantItemRepo.findAvailablePlantItems(plantEntryId, rentalPeriod.getStartDate(), rentalPeriod.getEndDate())
 											.stream().filter(p->p.getCondition() == EquipmentCondition.SERVICEABLE).collect(Collectors.toList());

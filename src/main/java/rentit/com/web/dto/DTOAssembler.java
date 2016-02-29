@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import rentit.com.common.RentitException;
 import rentit.com.common.domain.BusinessPeriod;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.sales.domain.PurchaseOrder;
@@ -21,7 +22,11 @@ public class DTOAssembler {
 	}
 	
 	public BusinessPeriod businessPeriodFromDTO(BusinessPeriodDTO periodDTO){
-		return BusinessPeriod.of(LocalDate.parse(periodDTO.getStartDate(), formatter), LocalDate.parse(periodDTO.getEndDate()) );
+		try {
+			return BusinessPeriod.of(LocalDate.parse(periodDTO.getStartDate(), formatter), LocalDate.parse(periodDTO.getEndDate()) );
+		} catch(RuntimeException _ex){
+			throw new RentitException("Unable to parse business period!");
+		}
 	}
 	
 	public BusinessPeriodDTO businessPeriodToDTO(BusinessPeriod period){

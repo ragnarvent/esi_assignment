@@ -1,18 +1,13 @@
 package rentit.com.common;
 
-public class RentitException extends Exception {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+public class RentitException extends RuntimeException {
 	private static final long serialVersionUID = 3088559746512334236L;
-
-	public RentitException() {
-		super();
-	}
-
-	public RentitException(String message) {
-		super(message);
-	}
-
-	public RentitException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
+	private String message;
 }

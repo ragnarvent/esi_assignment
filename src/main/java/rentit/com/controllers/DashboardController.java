@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import rentit.com.common.RentitException;
@@ -30,12 +31,17 @@ public class DashboardController {
 	private DTOAssembler dtoAssembler;
 	
 	@RequestMapping("catalog/form")
+	@ExceptionHandler({RentitException.class})
 	String queryForm(Model model) {
-		model.addAttribute("catalogQuery", new CatalogQueryDTO());
+		CatalogQueryDTO catalogQuery = new CatalogQueryDTO();
+		catalogQuery.setRentalPeriod(BusinessPeriodDTO.of("yyyy-MM-dd", "yyyy-MM-dd"));
+		model.addAttribute("catalogQuery", catalogQuery);
+		
 		return "dashboard/catalog/query-form";
 	}
 	
 	@RequestMapping("catalog/query")
+	@ExceptionHandler({RentitException.class})
 	String executeQuery(CatalogQueryDTO query, Model model) {
 		Collection<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), dtoAssembler.businessPeriodFromDTO(query.getRentalPeriod()));
 		model.addAttribute("plants", dtoAssembler.plantEntriesToDTO(entries));
@@ -45,13 +51,10 @@ public class DashboardController {
 	}
 
 	@RequestMapping("/orders")
+	@ExceptionHandler({RentitException.class})
 	String createPO(String plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) {
-		try {
-			PurchaseOrder po = salesService.createAndProcessPO(Long.valueOf(plantId), dtoAssembler.businessPeriodFromDTO(rentalPeriod));
-			model.addAttribute("po", dtoAssembler.purchaseOrderToDTO(po, plantName, plantDescription));
-		} catch (RentitException e) {
-			//TODO: Build and return appropriate message for end user
-		}
+		PurchaseOrder po = salesService.createAndProcessPO(Long.valueOf(plantId), dtoAssembler.businessPeriodFromDTO(rentalPeriod));
+		model.addAttribute("po", dtoAssembler.purchaseOrderToDTO(po, plantName, plantDescription));
 		
 		return "dashboard/catalog/order";
 	}

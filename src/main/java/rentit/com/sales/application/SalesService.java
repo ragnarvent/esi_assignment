@@ -42,14 +42,14 @@ public class SalesService {
 		return po;
 	}
 
-	private void reservePO(PurchaseOrder po) throws RentitException {
+	private void reservePO(PurchaseOrder po) {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
 		po.setReservationId(reservation.getId());
 		po.setTotal(reservation.calculateTotalCost());
 		po.setStatus(POStatus.OPEN);
 	}
 
-	private void validatePO(PurchaseOrder po) throws RentitException {
+	private void validatePO(PurchaseOrder po) {
 		DataBinder binder = new DataBinder(po);
 		binder.addValidators(new PurchaseOrderValidator(new BusinessPeriodValidator()));
 		binder.validate();
