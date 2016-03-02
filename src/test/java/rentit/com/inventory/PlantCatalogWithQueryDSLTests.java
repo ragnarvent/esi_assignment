@@ -29,8 +29,6 @@ import com.google.common.collect.Lists;
 
 import rentit.com.RentitApplication;
 import rentit.com.common.domain.BusinessPeriod;
-import rentit.com.inventory.domain.MaintenancePlanRepository;
-import rentit.com.inventory.domain.MaintenanceTaskRepository;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.inventory.domain.PlantInvEntryRepository;
 import rentit.com.inventory.domain.PlantInvItem;
@@ -39,7 +37,9 @@ import rentit.com.inventory.domain.PlantInvItemRepository;
 import rentit.com.inventory.domain.PlantReservation;
 import rentit.com.inventory.domain.PlantReservationRepository;
 import rentit.com.maintenance.domain.MaintenancePlan;
+import rentit.com.maintenance.domain.MaintenancePlanRepository;
 import rentit.com.maintenance.domain.MaintenanceTask;
+import rentit.com.maintenance.domain.MaintenanceTaskRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = RentitApplication.class)

@@ -69,17 +69,17 @@ insert into maint_plan (id, year_of_action, item_id) values(4, 2013, 5);
 insert into maint_plan (id, year_of_action, item_id) values(5, 2012, 6);
 insert into maint_plan (id, year_of_action, item_id) values(6, 2011, 7);
 	
-insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work)
-	values(1, 1,'corrective 1','2016-01-22','2016-01-24',10,'CORRECTIVE');
-insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work)
-	values(2, 2, 'corrective 2','2015-01-22','2015-01-24',10,'CORRECTIVE');
-insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work)
-	values(3, 3, 'corrective 3','2014-01-22','2014-01-24',10,'CORRECTIVE');
-insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work)
-	values(4, 4, 'corrective 4','2013-01-22','2013-01-24',10,'CORRECTIVE');
-insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work)
-	values(5, 5, 'corrective 5','2012-01-22','2012-01-24',10,'CORRECTIVE');
-insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work)
-	values(6, 6, 'corrective 6','2011-01-22','2011-01-24',10,'CORRECTIVE');
-insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work)
-	values(7, 2, 'corrective 7','2015-07-22','2015-08-24',10,'CORRECTIVE');
+insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work, reservation_id)
+	values(1, 1,'corrective 1','2016-01-22','2016-01-24',10,'CORRECTIVE', 2);
+insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work, reservation_id)
+	values(2, 2, 'corrective 2','2015-01-22','2015-01-24',10,'CORRECTIVE', 3);
+insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work, reservation_id)
+	values(3, 3, 'corrective 3','2014-01-22','2014-01-24',10,'CORRECTIVE', 4);
+insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work, reservation_id)
+	values(4, 4, 'corrective 4','2013-01-22','2013-01-24',10,'CORRECTIVE', 5);
+insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work, reservation_id)
+	values(5, 5, 'corrective 5','2012-01-22','2012-01-24',10,'CORRECTIVE', 6);
+insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work, reservation_id)
+	values(6, 6, 'corrective 6','2011-01-22','2011-01-24',10,'CORRECTIVE', 7);
+insert into maint_task (id, maint_plan_id, description, start_date, end_date, price, type_of_work, reservation_id)
+	values(7, 2, 'corrective 7','2015-07-22','2015-08-24',10,'CORRECTIVE', 8);
