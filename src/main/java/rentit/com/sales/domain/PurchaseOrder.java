@@ -51,6 +51,9 @@ public class PurchaseOrder {
 	private Address siteAddr;
 	
 	@Embedded
+	private ContactPerson contact;
+	
+	@Embedded
 	private List<Comment> notes;
 	
 	@Embedded
