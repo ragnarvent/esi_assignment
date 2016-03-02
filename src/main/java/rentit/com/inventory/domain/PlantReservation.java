@@ -9,13 +9,11 @@ import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
 import rentit.com.common.domain.BusinessPeriod;
-import rentit.com.maintenance.domain.MaintenancePlan;
 
 @Entity
 @Data
@@ -32,12 +30,11 @@ public class PlantReservation {
 	@OneToOne
 	private PlantInvItem plant;
 	
-	@OneToOne(optional=true)
-	@JoinColumn(name="maintplan_id")
-	private MaintenancePlan maintPlan; //TODO: replace with ID field
+	@Column(name="maintplan_id")
+	private long maintPlanId; 
 	
 	@Column(name="rental_id")
-	private Long rentalId;
+	private long rentalId;
 	
 	public static PlantReservation of(long id, PlantInvItem plantItem, BusinessPeriod rentalPeriod){
 		PlantReservation r = new PlantReservation();

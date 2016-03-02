@@ -1,6 +1,6 @@
 package rentit.com.inventory;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -65,18 +65,18 @@ public class PlantCatalogWithQueryDSLTests {
 	@Test
 	public void findAvailableByNameAndPeriodTest() {
 		List<PlantInvEntry> entries = Lists.newArrayList(plantRepo.findAll(nameContains("Mini").and(isAvailableFor(BusinessPeriod.of(LocalDate.of(2016, 3, 22), LocalDate.of(2016, 3, 27))))));
-		assertThat(entries.size(), is(2));
+		assertThat(entries.size(), equalTo(2));
 	}
 	
 	@Test
 	public void correctiveRepairCountTest() {
 		List<MaintenancePlan> entries = Lists.newArrayList(maintRepo.findAll(isWithinPastYears(5)));
 		Map<Integer,Integer> result = entries.stream().collect(Collectors.toMap(MaintenancePlan::getYearOfAction, v->v.getTasks().size()));
-		assertThat(result.get(2016), is(1));
-		assertThat(result.get(2015), is(2));
-		assertThat(result.get(2014), is(1));
-		assertThat(result.get(2013), is(1));
-		assertThat(result.get(2012), is(1));
+		assertThat(result.get(2016), equalTo(1));
+		assertThat(result.get(2015), equalTo(2));
+		assertThat(result.get(2014), equalTo(1));
+		assertThat(result.get(2013), equalTo(1));
+		assertThat(result.get(2012), equalTo(1));
 		assertNull(result.get(2011));
 	}
 	
@@ -85,11 +85,11 @@ public class PlantCatalogWithQueryDSLTests {
 		List<MaintenancePlan> entries = Lists.newArrayList(maintRepo.findAll(isWithinPastYears(5)));
 		Map<Integer,BigDecimal> result = entries.stream().collect(Collectors.toMap(MaintenancePlan::getYearOfAction, 
 				v->v.getTasks().stream().map(MaintenanceTask::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add)));
-		assertThat(result.get(2016).doubleValue(), is(10.0));
-		assertThat(result.get(2015).doubleValue(), is(20.0));
-		assertThat(result.get(2014).doubleValue(), is(10.0));
-		assertThat(result.get(2013).doubleValue(), is(10.0));
-		assertThat(result.get(2012).doubleValue(), is(10.0));
+		assertThat(result.get(2016).doubleValue(), equalTo(10.0));
+		assertThat(result.get(2015).doubleValue(), equalTo(20.0));
+		assertThat(result.get(2014).doubleValue(), equalTo(10.0));
+		assertThat(result.get(2013).doubleValue(), equalTo(10.0));
+		assertThat(result.get(2012).doubleValue(), equalTo(10.0));
 		assertNull(result.get(2011));
 	}
 	
@@ -117,7 +117,7 @@ public class PlantCatalogWithQueryDSLTests {
 		
 		MaintenancePlan plan = maintRepo.findOne(2L);
 		PlantReservation res = new PlantReservation();
-		res.setMaintPlan(plan);
+		res.setMaintPlanId(plan.getId());
 		resevRepo.save(res);
 		
 		assertNull(plantInvRepo.findOne(isServicableWithId("99"))); //Should fail

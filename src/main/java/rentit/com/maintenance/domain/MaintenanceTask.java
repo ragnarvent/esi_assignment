@@ -10,12 +10,10 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
 import rentit.com.common.domain.BusinessPeriod;
-import rentit.com.inventory.domain.PlantReservation;
 
 @Entity
 @Data
@@ -46,7 +44,6 @@ public class MaintenanceTask {
 	@Column(name="type_of_work")
 	private TypeOfWork typeOfWork;
 	
-	@OneToOne
-	private PlantReservation reservation;
-	
+	@Column(name="reservation_id")
+	private long reservationId;
 }
