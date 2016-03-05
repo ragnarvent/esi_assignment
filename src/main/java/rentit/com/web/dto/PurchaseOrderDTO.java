@@ -16,6 +16,7 @@ import rentit.com.sales.domain.PurchaseOrder.POStatus;
 @AllArgsConstructor(staticName="of")
 public class PurchaseOrderDTO extends ResourceSupport{
 	private long plantId;
+	private long poId;
 	private String name;
 	private String description;
 	private BigDecimal cost;

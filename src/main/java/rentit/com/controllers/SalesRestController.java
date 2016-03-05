@@ -25,6 +25,7 @@ import rentit.com.exceptions.PlantNotFoundException;
 import rentit.com.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.inventory.application.PlantCatalogService;
 import rentit.com.sales.application.SalesService;
+import rentit.com.sales.domain.PurchaseOrder;
 import rentit.com.web.dto.CommonDTOAssembler;
 import rentit.com.web.dto.PlantInvEntryAssembler;
 import rentit.com.web.dto.PlantInvEntryDTO;
@@ -63,6 +64,17 @@ public class SalesRestController {
     public Collection<PurchaseOrderDTO> findAllPOs(){
     	return poAssembler.toResources(salesService.fetchAllPOs());
     }
+    
+    @RequestMapping(method = RequestMethod.POST, path = "/modifyorder")
+    public ResponseEntity<PurchaseOrderDTO> modifyPurchaseOrder(@RequestBody PurchaseOrderDTO partialPODTO) throws PurchaseOrderNotFoundException, InvalidFieldException, URISyntaxException, PlantNotFoundException {
+        PurchaseOrder po = salesService.modifyPO(partialPODTO.getPoId(), commonAssembler.businessPeriodFromDTO(partialPODTO.getRentalPeriod()));
+    	PurchaseOrderDTO newPODTO = poAssembler.toResource(po);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(new URI(newPODTO.getId().getHref()));
+
+        return new ResponseEntity<PurchaseOrderDTO>(newPODTO, headers, HttpStatus.OK);
+    }
 
     @RequestMapping(method = RequestMethod.GET, path = "/orders/{id}")
     @ResponseStatus(HttpStatus.OK)
@@ -72,7 +84,8 @@ public class SalesRestController {
 
     @RequestMapping(method = RequestMethod.POST, path = "/orders")
     public ResponseEntity<PurchaseOrderDTO> createPurchaseOrder(@RequestBody PurchaseOrderDTO partialPODTO) throws URISyntaxException, InvalidFieldException, PlantNotFoundException {
-        PurchaseOrderDTO newPODTO = poAssembler.toResource(salesService.createAndProcessPO(partialPODTO.getPlantId(), commonAssembler.businessPeriodFromDTO(partialPODTO.getRentalPeriod())));
+    	PurchaseOrder po = salesService.createAndProcessPO(partialPODTO.getPlantId(), commonAssembler.businessPeriodFromDTO(partialPODTO.getRentalPeriod()));
+    	PurchaseOrderDTO newPODTO = poAssembler.toResource(po);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(new URI(newPODTO.getId().getHref()));

@@ -60,8 +60,8 @@ public class DashboardController {
 	}
 
 	@RequestMapping("/orders")
-	String createPO(String plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) throws InvalidFieldException, PlantNotFoundException {
-		PurchaseOrder po = salesService.createAndProcessPO(Long.valueOf(plantId), dtoAssembler.businessPeriodFromDTO(rentalPeriod));
+	String createPO(Long plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) throws InvalidFieldException, PlantNotFoundException {
+		PurchaseOrder po = salesService.createAndProcessPO(plantId, dtoAssembler.businessPeriodFromDTO(rentalPeriod));
 		model.addAttribute("po", poAssembler.toResource(po) );
 		
 		return "dashboard/catalog/order";

@@ -48,13 +48,7 @@ public class SalesService {
 		
 		poRepo.save(po); //Save valid PO
 		
-		try{
-			reservePO(po);	
-		}catch(PlantNotFoundException _ex){ //In case no plant was available, save PO with rejected status
-			po.setStatus(POStatus.REJECTED);
-			poRepo.save(po);
-			throw _ex;
-		}
+		reservePO(po);	
 		
 		validatePO(po); // post-validate 
 		
@@ -65,9 +59,15 @@ public class SalesService {
 
 	private void reservePO(PurchaseOrder po) throws PlantNotFoundException {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
-		po.setReservationId(reservation.getId());
-		po.setTotal(reservation.calculateTotalCost());
-		po.setStatus(POStatus.OPEN);
+		if( reservation == null ){ //In case no plant was available, save PO with rejected status
+			po.setStatus(POStatus.REJECTED);
+			poRepo.save(po);
+			throw new PlantNotFoundException(po.getId()); 
+		}else {
+			po.setReservationId(reservation.getId());
+			po.setTotal(reservation.calculateTotalCost());
+			po.setStatus(POStatus.OPEN);
+		}
 	}
 
 	private void validatePO(PurchaseOrder po) throws InvalidFieldException {
@@ -78,5 +78,19 @@ public class SalesService {
 		if(binder.getBindingResult().hasFieldErrors()){
 			throw new InvalidFieldException(binder.getBindingResult().getFieldError().getDefaultMessage()); //Alternatively we could list all the errors in PO fields
 		}
+	}
+
+	public PurchaseOrder modifyPO(long poId, BusinessPeriod rentalPeriod) throws PurchaseOrderNotFoundException, PlantNotFoundException {
+		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
+		if (existingPO.getStatus() != POStatus.REJECTED) 
+			throw new PurchaseOrderNotFoundException(poId);
+		
+		existingPO.setRentalPeriod(rentalPeriod);
+
+		reservePO(existingPO);
+		
+		poRepo.save(existingPO);
+		
+		return existingPO;
 	}
 }
