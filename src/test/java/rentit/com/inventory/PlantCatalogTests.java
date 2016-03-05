@@ -28,8 +28,6 @@ import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
 import rentit.com.inventory.domain.PlantInvItemRepository;
 import rentit.com.inventory.domain.PlantReservation;
 import rentit.com.inventory.domain.PlantReservationRepository;
-import rentit.com.maintenance.domain.MaintenancePlanRepository;
-import rentit.com.maintenance.domain.MaintenanceTaskRepository;
 import rentit.com.sales.domain.PurchaseOrder;
 import rentit.com.sales.domain.PurchaseOrderRepository;
 
@@ -47,12 +45,6 @@ public class PlantCatalogTests {
 	
 	@Autowired
 	PurchaseOrderRepository poRepo;
-	
-	@Autowired
-	MaintenancePlanRepository maintRepo;
-	
-	@Autowired
-	MaintenanceTaskRepository taskRepo;
 	
 	@Autowired
 	PlantInvItemRepository plantInvRepo;
