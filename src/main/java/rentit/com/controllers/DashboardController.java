@@ -15,7 +15,9 @@ import rentit.com.sales.application.SalesService;
 import rentit.com.sales.domain.PurchaseOrder;
 import rentit.com.web.dto.BusinessPeriodDTO;
 import rentit.com.web.dto.CatalogQueryDTO;
-import rentit.com.web.dto.DTOAssembler;
+import rentit.com.web.dto.CommonDTOAssembler;
+import rentit.com.web.dto.PlantInvEntryAssembler;
+import rentit.com.web.dto.PurchaseOrderAssembler;
 
 @Controller
 @RequestMapping("/dashboard")
@@ -28,7 +30,13 @@ public class DashboardController {
 	private SalesService salesService;
 	
 	@Autowired
-	private DTOAssembler dtoAssembler;
+	private CommonDTOAssembler dtoAssembler;
+	
+	@Autowired
+	PlantInvEntryAssembler entryAssembler;
+	
+	@Autowired
+	PurchaseOrderAssembler poAssembler;
 	
 	@RequestMapping("catalog/form")
 	@ExceptionHandler({RentitException.class})
@@ -44,7 +52,7 @@ public class DashboardController {
 	@ExceptionHandler({RentitException.class})
 	String executeQuery(CatalogQueryDTO query, Model model) {
 		Collection<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), dtoAssembler.businessPeriodFromDTO(query.getRentalPeriod()));
-		model.addAttribute("plants", dtoAssembler.plantEntriesToDTO(entries));
+		model.addAttribute("plants", entryAssembler.toResources(entries));
 		model.addAttribute("rentalPeriod", query.getRentalPeriod());
 		
 		return "dashboard/catalog/query-result";
@@ -54,7 +62,7 @@ public class DashboardController {
 	@ExceptionHandler({RentitException.class})
 	String createPO(String plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) {
 		PurchaseOrder po = salesService.createAndProcessPO(Long.valueOf(plantId), dtoAssembler.businessPeriodFromDTO(rentalPeriod));
-		model.addAttribute("po", dtoAssembler.purchaseOrderToDTO(po, plantName, plantDescription));
+		model.addAttribute("po", poAssembler.toResource(po) );
 		
 		return "dashboard/catalog/order";
 	}

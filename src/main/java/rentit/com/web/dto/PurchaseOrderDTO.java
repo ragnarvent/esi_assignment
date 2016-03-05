@@ -2,15 +2,19 @@ package rentit.com.web.dto;
 
 import java.math.BigDecimal;
 
+import org.springframework.hateoas.ResourceSupport;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import rentit.com.sales.domain.PurchaseOrder.POStatus;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 @NoArgsConstructor
 @AllArgsConstructor(staticName="of")
-public class PurchaseOrderDTO {
+public class PurchaseOrderDTO extends ResourceSupport{
 	private long plantId;
 	private String name;
 	private String description;
