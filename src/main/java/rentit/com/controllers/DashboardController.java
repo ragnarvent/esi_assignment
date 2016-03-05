@@ -3,12 +3,15 @@ package rentit.com.controllers;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import rentit.com.common.RentitException;
+import rentit.com.exceptions.InvalidFieldException;
+import rentit.com.exceptions.PlantNotFoundException;
 import rentit.com.inventory.application.PlantCatalogService;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.sales.application.SalesService;
@@ -39,7 +42,6 @@ public class DashboardController {
 	PurchaseOrderAssembler poAssembler;
 	
 	@RequestMapping("catalog/form")
-	@ExceptionHandler({RentitException.class})
 	String queryForm(Model model) {
 		CatalogQueryDTO catalogQuery = new CatalogQueryDTO();
 		catalogQuery.setRentalPeriod(BusinessPeriodDTO.of("yyyy-MM-dd", "yyyy-MM-dd"));
@@ -49,8 +51,7 @@ public class DashboardController {
 	}
 	
 	@RequestMapping("catalog/query")
-	@ExceptionHandler({RentitException.class})
-	String executeQuery(CatalogQueryDTO query, Model model) {
+	String executeQuery(CatalogQueryDTO query, Model model) throws InvalidFieldException {
 		Collection<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), dtoAssembler.businessPeriodFromDTO(query.getRentalPeriod()));
 		model.addAttribute("plants", entryAssembler.toResources(entries));
 		model.addAttribute("rentalPeriod", query.getRentalPeriod());
@@ -59,11 +60,15 @@ public class DashboardController {
 	}
 
 	@RequestMapping("/orders")
-	@ExceptionHandler({RentitException.class})
-	String createPO(String plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) {
+	String createPO(String plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) throws InvalidFieldException, PlantNotFoundException {
 		PurchaseOrder po = salesService.createAndProcessPO(Long.valueOf(plantId), dtoAssembler.businessPeriodFromDTO(rentalPeriod));
 		model.addAttribute("po", poAssembler.toResource(po) );
 		
 		return "dashboard/catalog/order";
+	}
+	
+	@ExceptionHandler(PlantNotFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public void handPlantNotFoundException(PlantNotFoundException ex) {
 	}
 }

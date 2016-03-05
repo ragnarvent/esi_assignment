@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.DataBinder;
 
-import rentit.com.common.RentitException;
 import rentit.com.common.domain.BusinessPeriod;
+import rentit.com.exceptions.InvalidFieldException;
+import rentit.com.exceptions.PlantNotFoundException;
+import rentit.com.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.inventory.application.InventoryService;
 import rentit.com.inventory.domain.PlantReservation;
 import rentit.com.sales.domain.PurchaseOrder;
@@ -32,22 +34,27 @@ public class SalesService {
 		return poRepo.findAll();
 	}
 	
-	public PurchaseOrder fetchPurchaseOrder( long id ){
+	public PurchaseOrder fetchPurchaseOrder( long id ) throws PurchaseOrderNotFoundException{
 		PurchaseOrder order = poRepo.findOne(id);
-		if( order == null ){
-			throw new RentitException("Could not find purchase order with id: " + id);
-		}
+		if( order == null )
+			throw new PurchaseOrderNotFoundException(id);
 		return order;
 	}
 	
-	public PurchaseOrder createAndProcessPO(long plantId, BusinessPeriod rentalPeriod) throws RentitException {
+	public PurchaseOrder createAndProcessPO(long plantId, BusinessPeriod rentalPeriod) throws InvalidFieldException, PlantNotFoundException{
 		PurchaseOrder po = PurchaseOrder.of(idFactory.nextPurchaseOrderID(), plantId, rentalPeriod);
 		
 		validatePO(po); // pre-validate
 		
 		poRepo.save(po); //Save valid PO
-
-		reservePO(po);
+		
+		try{
+			reservePO(po);	
+		}catch(PlantNotFoundException _ex){ //In case no plant was available, save PO with rejected status
+			po.setStatus(POStatus.REJECTED);
+			poRepo.save(po);
+			throw _ex;
+		}
 		
 		validatePO(po); // post-validate 
 		
@@ -56,20 +63,20 @@ public class SalesService {
 		return po;
 	}
 
-	private void reservePO(PurchaseOrder po) {
+	private void reservePO(PurchaseOrder po) throws PlantNotFoundException {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
 		po.setReservationId(reservation.getId());
 		po.setTotal(reservation.calculateTotalCost());
 		po.setStatus(POStatus.OPEN);
 	}
 
-	private void validatePO(PurchaseOrder po) {
+	private void validatePO(PurchaseOrder po) throws InvalidFieldException {
 		DataBinder binder = new DataBinder(po);
 		binder.addValidators(new PurchaseOrderValidator(new BusinessPeriodValidator()));
 		binder.validate();
 		
 		if(binder.getBindingResult().hasFieldErrors()){
-			throw new RentitException(binder.getBindingResult().getFieldError().getDefaultMessage()); //Alternatively we could list all the errors in PO fields
+			throw new InvalidFieldException(binder.getBindingResult().getFieldError().getDefaultMessage()); //Alternatively we could list all the errors in PO fields
 		}
 	}
 }

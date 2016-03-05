@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import rentit.com.common.domain.BusinessPeriod;
+import rentit.com.exceptions.InvalidFieldException;
+import rentit.com.exceptions.PlantNotFoundException;
+import rentit.com.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.inventory.application.PlantCatalogService;
 import rentit.com.sales.application.SalesService;
 import rentit.com.web.dto.CommonDTOAssembler;
@@ -59,16 +63,15 @@ public class SalesRestController {
     public Collection<PurchaseOrderDTO> findAllPOs(){
     	return poAssembler.toResources(salesService.fetchAllPOs());
     }
-    
 
     @RequestMapping(method = RequestMethod.GET, path = "/orders/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PurchaseOrderDTO fetchPurchaseOrder(@PathVariable("id") Long id) {
+    public PurchaseOrderDTO fetchPurchaseOrder(@PathVariable("id") Long id) throws PurchaseOrderNotFoundException {
     	return poAssembler.toResource(salesService.fetchPurchaseOrder(id));
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "/orders")
-    public ResponseEntity<PurchaseOrderDTO> createPurchaseOrder(@RequestBody PurchaseOrderDTO partialPODTO) throws URISyntaxException {
+    public ResponseEntity<PurchaseOrderDTO> createPurchaseOrder(@RequestBody PurchaseOrderDTO partialPODTO) throws URISyntaxException, InvalidFieldException, PlantNotFoundException {
         PurchaseOrderDTO newPODTO = poAssembler.toResource(salesService.createAndProcessPO(partialPODTO.getPlantId(), commonAssembler.businessPeriodFromDTO(partialPODTO.getRentalPeriod())));
 
         HttpHeaders headers = new HttpHeaders();
@@ -76,4 +79,9 @@ public class SalesRestController {
 
         return new ResponseEntity<PurchaseOrderDTO>(newPODTO, headers, HttpStatus.CREATED);
     }
+    
+	@ExceptionHandler(PlantNotFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public void handPlantNotFoundException(PlantNotFoundException ex) {
+	}
 }
