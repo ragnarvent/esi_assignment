@@ -29,7 +29,7 @@ public class PurchaseOrder {
 	private long id;
 	
 	@Column(name="reservation_id")
-	private long reservationId;
+	private Long reservationId;
 	
 	@Column(name="plant_entry_id")
 	private long plantEntryId;

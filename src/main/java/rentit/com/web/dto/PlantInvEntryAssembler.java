@@ -3,14 +3,13 @@ package rentit.com.web.dto;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Service;
 
-import rentit.com.controllers.DashboardController;
 import rentit.com.inventory.domain.PlantInvEntry;
 
 @Service
 public class PlantInvEntryAssembler extends ResourceAssemblerSupport<PlantInvEntry, PlantInvEntryDTO> {
 
 	public PlantInvEntryAssembler() {
-		super(DashboardController.class, PlantInvEntryDTO.class);
+		super(PlantInvEntry.class, PlantInvEntryDTO.class);
 	}
 
 	@Override

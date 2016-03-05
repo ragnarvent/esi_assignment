@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Service;
 
-import rentit.com.controllers.DashboardController;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.inventory.domain.PlantInvEntryRepository;
 import rentit.com.sales.domain.PurchaseOrder;
@@ -19,7 +18,7 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
 	CommonDTOAssembler commonAssembler;
 
 	public PurchaseOrderAssembler() {
-		super(DashboardController.class, PurchaseOrderDTO.class);
+		super(PurchaseOrder.class, PurchaseOrderDTO.class);
 	}
 
 	@Override

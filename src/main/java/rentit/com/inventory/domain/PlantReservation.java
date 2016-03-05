@@ -31,10 +31,10 @@ public class PlantReservation {
 	private PlantInvItem plant;
 	
 	@Column(name="maintplan_id")
-	private long maintPlanId; 
+	private Long maintPlanId; 
 	
 	@Column(name="rental_id")
-	private long rentalId;
+	private Long rentalId;
 	
 	public static PlantReservation of(long id, PlantInvItem plantItem, BusinessPeriod rentalPeriod){
 		PlantReservation r = new PlantReservation();

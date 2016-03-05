@@ -43,7 +43,7 @@ public class PurchaseOrderValidator implements Validator{
 		}
 		
 		if(po.getStatus() == POStatus.OPEN){
-			if(po.getReservationId() == 0L)
+			if(po.getReservationId() == null)
 				errors.rejectValue("reservationId", "Reservation id is not set!");
 
 			if(po.getTotal() == null)

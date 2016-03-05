@@ -26,6 +26,14 @@ public class SalesService {
 	@Autowired
 	private PurchaseOrderRepository poRepo;
 	
+	public PurchaseOrder fetchPurchaseOrder( long id ){
+		PurchaseOrder order = poRepo.findOne(id);
+		if( order == null ){
+			throw new RentitException("Could not find purchase order with id: " + id);
+		}
+		return order;
+	}
+	
 	public PurchaseOrder createAndProcessPO(long plantId, BusinessPeriod rentalPeriod) throws RentitException {
 		PurchaseOrder po = PurchaseOrder.of(idFactory.nextPurchaseOrderID(), plantId, rentalPeriod);
 		
