@@ -54,6 +54,12 @@ public class SalesRestController {
             ) {
     	return entryAssembler.toResources(catalogService.findAvailablePlants(plantName, BusinessPeriod.of(startDate, endDate)));
     }
+    
+    @RequestMapping(method = RequestMethod.GET, path = "/allorders")
+    public Collection<PurchaseOrderDTO> findAllPOs(){
+    	return poAssembler.toResources(salesService.fetchAllPOs());
+    }
+    
 
     @RequestMapping(method = RequestMethod.GET, path = "/orders/{id}")
     @ResponseStatus(HttpStatus.OK)

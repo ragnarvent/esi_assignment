@@ -1,5 +1,7 @@
 package rentit.com.sales.application;
 
+import java.util.Collection;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.DataBinder;
@@ -25,6 +27,10 @@ public class SalesService {
 
 	@Autowired
 	private PurchaseOrderRepository poRepo;
+	
+	public Collection<PurchaseOrder> fetchAllPOs(){
+		return poRepo.findAll();
+	}
 	
 	public PurchaseOrder fetchPurchaseOrder( long id ){
 		PurchaseOrder order = poRepo.findOne(id);
