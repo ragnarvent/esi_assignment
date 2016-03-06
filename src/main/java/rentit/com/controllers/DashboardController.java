@@ -3,15 +3,15 @@ package rentit.com.controllers;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
 
 import rentit.com.exceptions.InvalidFieldException;
 import rentit.com.exceptions.PlantNotFoundException;
+import rentit.com.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.inventory.application.PlantCatalogService;
 import rentit.com.inventory.domain.PlantInvEntry;
 import rentit.com.sales.application.SalesService;
@@ -36,13 +36,13 @@ public class DashboardController {
 	private CommonDTOAssembler dtoAssembler;
 	
 	@Autowired
-	PlantInvEntryAssembler entryAssembler;
+	private PlantInvEntryAssembler entryAssembler;
 	
 	@Autowired
-	PurchaseOrderAssembler poAssembler;
+	private PurchaseOrderAssembler poAssembler;
 	
 	@RequestMapping("catalog/form")
-	String queryForm(Model model) {
+	public String queryForm(Model model) {
 		CatalogQueryDTO catalogQuery = new CatalogQueryDTO();
 		catalogQuery.setRentalPeriod(BusinessPeriodDTO.of("yyyy-MM-dd", "yyyy-MM-dd"));
 		model.addAttribute("catalogQuery", catalogQuery);
@@ -51,7 +51,7 @@ public class DashboardController {
 	}
 	
 	@RequestMapping("catalog/query")
-	String executeQuery(CatalogQueryDTO query, Model model) throws InvalidFieldException {
+	public String executeQuery(CatalogQueryDTO query, Model model) throws InvalidFieldException {
 		Collection<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), dtoAssembler.businessPeriodFromDTO(query.getRentalPeriod()));
 		model.addAttribute("plants", entryAssembler.toResources(entries));
 		model.addAttribute("rentalPeriod", query.getRentalPeriod());
@@ -60,15 +60,19 @@ public class DashboardController {
 	}
 
 	@RequestMapping("/orders")
-	String createPO(Long plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) throws InvalidFieldException, PlantNotFoundException {
+	public String createPO(Long plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) throws InvalidFieldException, PlantNotFoundException {
 		PurchaseOrder po = salesService.createAndProcessPO(plantId, dtoAssembler.businessPeriodFromDTO(rentalPeriod));
 		model.addAttribute("po", poAssembler.toResource(po) );
 		
 		return "dashboard/catalog/order";
 	}
 	
-	@ExceptionHandler(PlantNotFoundException.class)
-	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public void handPlantNotFoundException(PlantNotFoundException ex) {
+	@ExceptionHandler({InvalidFieldException.class, PurchaseOrderNotFoundException.class, PlantNotFoundException.class})
+	public ModelAndView handleException(Exception ex) {
+	    ModelAndView mav = new ModelAndView();
+	    mav.addObject("message", ex.getMessage());
+	    mav.setViewName("error");
+	    
+	    return mav;
 	}
 }

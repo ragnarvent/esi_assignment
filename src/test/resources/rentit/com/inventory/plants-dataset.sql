@@ -57,10 +57,10 @@ insert into plant_inventory_item (id, condition, plantInfo_id)
 	values(14, 'SERVICEABLE', 14);
 	
 insert into purchase_order (id, plant_entry_id, start_date, end_date, total)
-    values (1, 2, '2016-03-22', '2016-03-24', 600);
+    values (100, 2, '2016-03-22', '2016-03-24', 600);
     
 insert into plant_reservation (id, plant_id, start_date, end_date, rental_id)
-	values (1, 1, '2016-03-22', '2016-03-24', 1);
+	values (1, 1, '2016-03-22', '2016-03-24', 100);
 	
 insert into maint_plan (id, year_of_action, item_id) values(1, 2016, 2);
 insert into maint_plan (id, year_of_action, item_id) values(2, 2015, 3);

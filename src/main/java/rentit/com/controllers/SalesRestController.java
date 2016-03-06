@@ -37,19 +37,19 @@ import rentit.com.web.dto.PurchaseOrderDTO;
 public class SalesRestController {
     
 	@Autowired
-    PlantCatalogService catalogService;
+    private PlantCatalogService catalogService;
     
     @Autowired
-    SalesService salesService;
+    private SalesService salesService;
     
     @Autowired
-    PlantInvEntryAssembler entryAssembler;
+    private PlantInvEntryAssembler entryAssembler;
     
     @Autowired
-    PurchaseOrderAssembler poAssembler;
+    private PurchaseOrderAssembler poAssembler;
     
     @Autowired
-    CommonDTOAssembler commonAssembler;
+    private CommonDTOAssembler commonAssembler;
     
     @RequestMapping(method = RequestMethod.GET, path = "/plants")
     public Collection<PlantInvEntryDTO> findAvailablePlants(
@@ -93,8 +93,18 @@ public class SalesRestController {
         return new ResponseEntity<PurchaseOrderDTO>(newPODTO, headers, HttpStatus.CREATED);
     }
     
+    @ExceptionHandler(InvalidFieldException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public void handInvalidField(InvalidFieldException ex) {
+	}
+    
 	@ExceptionHandler(PlantNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public void handPlantNotFoundException(PlantNotFoundException ex) {
+	}
+	
+	@ExceptionHandler(PurchaseOrderNotFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public void handPONotFoundException(PurchaseOrderNotFoundException ex) {
 	}
 }

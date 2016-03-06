@@ -25,6 +25,7 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
 	public PurchaseOrderDTO toResource(PurchaseOrder order) {
 		PurchaseOrderDTO dto = createResourceWithId(order.getId(), order);
 		dto.setPlantId(order.getId());
+		dto.setPoId(order.getId());
 
 		PlantInvEntry plantEntry = entryRepo.findOne(order.getPlantEntryId());
 		dto.setName(plantEntry.getName());
@@ -35,5 +36,4 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
 		dto.setRentalPeriod(commonAssembler.businessPeriodToDTO(order.getRentalPeriod()));
 		return dto;
 	}
-
 }
