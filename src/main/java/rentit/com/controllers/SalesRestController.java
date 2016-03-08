@@ -65,6 +65,10 @@ public class SalesRestController {
     	return poAssembler.toResources(salesService.fetchAllPOs());
     }
     
+    /**
+     * Method that allows the modification of rejected Purchase order.
+     * Currently PO can only be rejected when non-existing Plant ID is used or if the plant has become unavailable.
+     */   
     @RequestMapping(method = RequestMethod.POST, path = "/modifyorder")
     public ResponseEntity<PurchaseOrderDTO> modifyPurchaseOrder(@RequestBody PurchaseOrderDTO partialPODTO) throws PurchaseOrderNotFoundException, InvalidFieldException, URISyntaxException, PlantNotFoundException {
         PurchaseOrder po = salesService.modifyPO(partialPODTO.getPoId(), commonAssembler.businessPeriodFromDTO(partialPODTO.getRentalPeriod()));

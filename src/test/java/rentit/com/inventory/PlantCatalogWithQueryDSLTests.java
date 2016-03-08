@@ -43,7 +43,7 @@ import rentit.com.maintenance.domain.MaintenanceTaskRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = RentitApplication.class)
-@Sql(scripts="plants-dataset.sql")
+@Sql(scripts="/plants-dataset.sql")
 @DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
 public class PlantCatalogWithQueryDSLTests {
 

@@ -4,11 +4,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,7 +43,7 @@ import rentit.com.web.dto.PurchaseOrderDTO;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = RentitApplication.class)
 @WebAppConfiguration
-@Sql({"/schema.sql", "/rentit/com/inventory/plants-dataset.sql"})
+@Sql({"/schema.sql", "/plants-dataset.sql"})
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class SalesRestControllerTests {
 	
@@ -71,21 +73,19 @@ public class SalesRestControllerTests {
 		List<PlantInvEntryDTO> plants = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PlantInvEntryDTO>>() { });
 
 		assertThat(plants.size(), equalTo(6));
-
-		PurchaseOrderDTO order = new PurchaseOrderDTO();
-		order.setPlantId(plants.get(2).getEntryId());
-		order.setRentalPeriod(BusinessPeriodDTO.of(LocalDate.now().toString(), LocalDate.now().toString()));
+		
+		PurchaseOrderDTO order = createPO(plants.get(2).getEntryId(),LocalDate.now(),LocalDate.now());
 		
 		//Test successfully creating new PO
 		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(order)).contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isCreated());
+				.andExpect(status().isCreated()).andReturn();
+		
 	}
 	
 	@Test	
 	public void testModifyExistingPO() throws Exception{
-		PurchaseOrderDTO order = new PurchaseOrderDTO();
-		order.setPlantId(1L);
-		order.setRentalPeriod(BusinessPeriodDTO.of("2016-03-23", "2016-03-25"));
+		
+		PurchaseOrderDTO order = createPO(1L,LocalDate.of(2016, 3, 23),LocalDate.of(2016, 3, 25));
 		
 		//Try to create new PO
 		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(order)).contentType(MediaType.APPLICATION_JSON))
@@ -110,8 +110,11 @@ public class SalesRestControllerTests {
 	}
 	
 	@Test
-	public void testFetchSinglePOSuccess(){
-		//TODO - fetch one existing PO(e.g the one loaded with plants-dataset.sql)
+	public void testFetchSinglePOSuccess() throws Exception{
+		mockMvc.perform(get("/api/sales//orders/100"))
+				.andExpect(status().isOk())
+				.andExpect(header().string("Location", isEmptyOrNullString()))
+				.andReturn();
 	}
 	
 	@Test
@@ -123,8 +126,39 @@ public class SalesRestControllerTests {
 	}
 	
 	@Test
-	public void testGetAllPOs(){
-		//TODO - add one more PO, then retrieve all -> total 2 PO's
+	public void testGetAllPOs() throws Exception{	
+		
+		PurchaseOrderDTO order = createPO(14,LocalDate.now(),LocalDate.now().plusDays(1));
+		
+		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(order)).contentType(MediaType.APPLICATION_JSON))
+		.andExpect(status().isCreated());
+		
+		//Retrieve all PO's
+		MvcResult result1 = mockMvc.perform(get("/api/sales/allorders"))
+				.andExpect(status().isOk())
+				.andExpect(header().string("Location", isEmptyOrNullString()))
+				.andReturn();
+		List<PurchaseOrderDTO> orders = mapper.readValue(result1.getResponse().getContentAsString(), new TypeReference<List<PurchaseOrderDTO>>() { });
+		assertThat(orders.size(), equalTo(2));
+	}
+	
+	@Test
+	public void testPOTotalCost() throws Exception{
+		
+		PurchaseOrderDTO order = createPO(14,LocalDate.now(),LocalDate.now().plusDays(2));
+		
+		MvcResult poResult =  mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(order)).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isCreated()).andReturn();
+		
+		PurchaseOrderDTO po = mapper.readValue(poResult.getResponse().getContentAsString(), new TypeReference<PurchaseOrderDTO>() { });
+		assertTrue(po.getCost().compareTo(BigDecimal.valueOf(900))==0);
+	}
+
+	private static PurchaseOrderDTO createPO(long plantID, LocalDate startDate, LocalDate endDate) {
+		PurchaseOrderDTO order = new PurchaseOrderDTO();
+		order.setPlantId(plantID);
+		order.setRentalPeriod(BusinessPeriodDTO.of(startDate.toString(), endDate.toString()));
+		return order;
 	}
 }
 
