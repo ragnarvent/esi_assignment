@@ -20,16 +20,16 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import rentit.com.RentitApplication;
-import rentit.com.common.domain.BusinessPeriod;
-import rentit.com.inventory.domain.PlantInvEntry;
-import rentit.com.inventory.domain.PlantInvEntryRepository;
-import rentit.com.inventory.domain.PlantInvItem;
-import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
-import rentit.com.inventory.domain.PlantInvItemRepository;
-import rentit.com.inventory.domain.PlantReservation;
-import rentit.com.inventory.domain.PlantReservationRepository;
-import rentit.com.sales.domain.PurchaseOrder;
-import rentit.com.sales.domain.PurchaseOrderRepository;
+import rentit.com.common.domain.model.BusinessPeriod;
+import rentit.com.inventory.domain.model.PlantInvEntry;
+import rentit.com.inventory.domain.model.PlantInvItem;
+import rentit.com.inventory.domain.model.PlantReservation;
+import rentit.com.inventory.domain.model.PlantInvItem.EquipmentCondition;
+import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
+import rentit.com.inventory.domain.repository.PlantInvItemRepository;
+import rentit.com.inventory.domain.repository.PlantReservationRepository;
+import rentit.com.sales.domain.model.PurchaseOrder;
+import rentit.com.sales.domain.repository.PurchaseOrderRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = RentitApplication.class)

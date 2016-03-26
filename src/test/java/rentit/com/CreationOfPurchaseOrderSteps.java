@@ -29,13 +29,13 @@ import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import rentit.com.inventory.domain.PlantInvEntry;
-import rentit.com.inventory.domain.PlantInvEntryRepository;
-import rentit.com.inventory.domain.PlantInvItem;
-import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
-import rentit.com.inventory.domain.PlantInvItemRepository;
-import rentit.com.inventory.domain.PlantReservationRepository;
-import rentit.com.sales.domain.PurchaseOrderRepository;
+import rentit.com.inventory.domain.model.PlantInvEntry;
+import rentit.com.inventory.domain.model.PlantInvItem;
+import rentit.com.inventory.domain.model.PlantInvItem.EquipmentCondition;
+import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
+import rentit.com.inventory.domain.repository.PlantInvItemRepository;
+import rentit.com.inventory.domain.repository.PlantReservationRepository;
+import rentit.com.sales.domain.repository.PurchaseOrderRepository;
 
 @ContextConfiguration(classes = { RentitApplication.class,
 		Jsr310JpaConverters.class }, loader = SpringApplicationContextLoader.class)

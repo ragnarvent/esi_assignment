@@ -4,11 +4,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static rentit.com.maintenance.domain.MaintenanceSpecifications.isWithinPastYears;
-import static rentit.com.sales.domain.InventorySpecifications.isAvailableFor;
-import static rentit.com.sales.domain.InventorySpecifications.isRelaxedServicableWithId;
-import static rentit.com.sales.domain.InventorySpecifications.isServicableWithId;
-import static rentit.com.sales.domain.InventorySpecifications.nameContains;
+import static rentit.com.maintenance.domain.model.MaintenanceSpecifications.isWithinPastYears;
+import static rentit.com.sales.domain.model.InventorySpecifications.isAvailableFor;
+import static rentit.com.sales.domain.model.InventorySpecifications.isRelaxedServicableWithId;
+import static rentit.com.sales.domain.model.InventorySpecifications.isServicableWithId;
+import static rentit.com.sales.domain.model.InventorySpecifications.nameContains;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,18 +28,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.google.common.collect.Lists;
 
 import rentit.com.RentitApplication;
-import rentit.com.common.domain.BusinessPeriod;
-import rentit.com.inventory.domain.PlantInvEntry;
-import rentit.com.inventory.domain.PlantInvEntryRepository;
-import rentit.com.inventory.domain.PlantInvItem;
-import rentit.com.inventory.domain.PlantInvItem.EquipmentCondition;
-import rentit.com.inventory.domain.PlantInvItemRepository;
-import rentit.com.inventory.domain.PlantReservation;
-import rentit.com.inventory.domain.PlantReservationRepository;
-import rentit.com.maintenance.domain.MaintenancePlan;
-import rentit.com.maintenance.domain.MaintenancePlanRepository;
-import rentit.com.maintenance.domain.MaintenanceTask;
-import rentit.com.maintenance.domain.MaintenanceTaskRepository;
+import rentit.com.common.domain.model.BusinessPeriod;
+import rentit.com.inventory.domain.model.PlantInvEntry;
+import rentit.com.inventory.domain.model.PlantInvItem;
+import rentit.com.inventory.domain.model.PlantReservation;
+import rentit.com.inventory.domain.model.PlantInvItem.EquipmentCondition;
+import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
+import rentit.com.inventory.domain.repository.PlantInvItemRepository;
+import rentit.com.inventory.domain.repository.PlantReservationRepository;
+import rentit.com.maintenance.domain.model.MaintenancePlan;
+import rentit.com.maintenance.domain.model.MaintenanceTask;
+import rentit.com.maintenance.domain.repository.MaintenancePlanRepository;
+import rentit.com.maintenance.domain.repository.MaintenanceTaskRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = RentitApplication.class)

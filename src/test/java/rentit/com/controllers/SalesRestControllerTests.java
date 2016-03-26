@@ -12,12 +12,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -34,11 +36,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import rentit.com.RentitApplication;
-import rentit.com.inventory.domain.PlantInvEntryRepository;
-import rentit.com.sales.domain.PurchaseOrder.POStatus;
-import rentit.com.web.dto.BusinessPeriodDTO;
-import rentit.com.web.dto.PlantInvEntryDTO;
-import rentit.com.web.dto.PurchaseOrderDTO;
+import rentit.com.common.application.dto.BusinessPeriodDTO;
+import rentit.com.inventory.application.dto.PlantInvEntryDTO;
+import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
+import rentit.com.sales.application.dto.PurchaseOrderDTO;
+import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = RentitApplication.class)
@@ -55,7 +57,7 @@ public class SalesRestControllerTests {
 	
 	private MockMvc mockMvc;
 	
-	@Autowired
+	@Autowired @Qualifier("_halObjectMapper")
 	ObjectMapper mapper;
 
 	@Before
@@ -84,11 +86,16 @@ public class SalesRestControllerTests {
 	
 	@Test	
 	public void testModifyExistingPO() throws Exception{
+		final LocalDate now = LocalDate.now();
 		
-		PurchaseOrderDTO order = createPO(1L,LocalDate.of(2016, 3, 23),LocalDate.of(2016, 3, 25));
+		//Create initial PO
+		PurchaseOrderDTO initialOrder = createPO(1L, now, now.plusDays(3));
+		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(initialOrder)).contentType(MediaType.APPLICATION_JSON))
+		.andExpect(status().isCreated());
 		
 		//Try to create new PO
-		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(order)).contentType(MediaType.APPLICATION_JSON))
+		PurchaseOrderDTO rejectedOrder = createPO(1L,now.plusDays(1),now.plusDays(5));
+		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(rejectedOrder)).contentType(MediaType.APPLICATION_JSON))
 		.andExpect(status().isNotFound());  //Will fail because plant is already reserved for that period, PO will be set as REJECTED
 		
 		//Get all POs
@@ -96,15 +103,16 @@ public class SalesRestControllerTests {
 				.andExpect(status().isOk())
 				.andExpect(header().string("Location", isEmptyOrNullString()))
 				.andReturn();
-		List<PurchaseOrderDTO> orders = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PurchaseOrderDTO>>() { });
-		assertThat(orders.size(), equalTo(2));
+		List<PurchaseOrderDTO> orders = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PurchaseOrderDTO>>() {});
+		assertThat(orders.size(), equalTo(3));
 		
 		//Find the rejected one
 		PurchaseOrderDTO rejectedPO = orders.stream().filter(o->o.getStatus() == POStatus.REJECTED).findFirst().get();
 		assertNotNull(rejectedPO);
 		
-		//Modify existing PO
-		rejectedPO.setRentalPeriod(BusinessPeriodDTO.of("2016-03-26", "2016-03-28"));
+		//Modify existing PO, set startDate and endDate to some available period
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		rejectedPO.setRentalPeriod(BusinessPeriodDTO.of(now.plusDays(10).format(formatter), now.plusDays(15).format(formatter)));
 		mockMvc.perform(post("/api/sales/modifyorder").content(mapper.writeValueAsString(rejectedPO)).contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk());
 	}
