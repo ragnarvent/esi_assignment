@@ -38,9 +38,6 @@ public class ResourceSupport extends org.springframework.hateoas.ResourceSupport
 	}
 	
 	public ExtendedLink getXlink(String rel){
-		//As proper hashCode and equals are undefined for ExtendedLink, 
-		//HttpMethod parameter will not be considered in the comparison.
-		return this.xlinks.stream().filter(xl->xl.getRel().equals(rel)).findFirst().get();
+		return this.xlinks.stream().filter(xl->rel.equals(xl.get_rel())).findFirst().get();
 	}
-	
 }

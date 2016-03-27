@@ -1,6 +1,9 @@
 package rentit.com.controllers;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -48,6 +51,8 @@ import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 @Sql({"/schema.sql", "/plants-dataset.sql"})
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class SalesRestControllerTests {
+	
+	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	
 	@Autowired
 	PlantInvEntryRepository repo;
@@ -111,7 +116,6 @@ public class SalesRestControllerTests {
 		assertNotNull(rejectedPO);
 		
 		//Modify existing PO, set startDate and endDate to some available period
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		rejectedPO.setRentalPeriod(BusinessPeriodDTO.of(now.plusDays(10).format(formatter), now.plusDays(15).format(formatter)));
 		mockMvc.perform(post("/api/sales/modifyorder").content(mapper.writeValueAsString(rejectedPO)).contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk());
@@ -167,6 +171,32 @@ public class SalesRestControllerTests {
 		order.setPlantId(plantID);
 		order.setRentalPeriod(BusinessPeriodDTO.of(startDate.toString(), endDate.toString()));
 		return order;
+	}
+
+	@Test
+	public void testPurchaseOrderAcceptance() throws Exception {
+	  MvcResult result = mockMvc.perform( get("/api/sales/plants?name=Exc&startDate=2016-03-14&endDate=2016-03-25")).andReturn();
+	  List<PlantInvEntryDTO> plants = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PlantInvEntryDTO>>() {});
+	
+	  PurchaseOrderDTO order = new PurchaseOrderDTO();
+	  order.setPlantId(plants.get(2).getEntryId());
+	  
+	  String now = LocalDate.now().format(formatter);
+	  order.setRentalPeriod(BusinessPeriodDTO.of(now, now));
+	
+	  result = mockMvc.perform(post("/api/sales/orders")
+	                       .content(mapper.writeValueAsString(order))
+	                       .contentType(MediaType.APPLICATION_JSON))
+	  .andExpect(status().isCreated())
+	  .andExpect(header().string("Location", not(isEmptyOrNullString())))
+	      .andReturn();
+	
+	  order = mapper.readValue(result.getResponse().getContentAsString(), PurchaseOrderDTO.class);
+	
+	  assertThat(order.getXlink("accept"), is(notNullValue()));
+	
+	  mockMvc.perform(post(order.getXlink("accept").getHref()))
+	      .andReturn();
 	}
 }
 
