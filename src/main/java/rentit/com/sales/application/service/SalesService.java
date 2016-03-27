@@ -1,5 +1,6 @@
 package rentit.com.sales.application.service;
 
+import java.time.LocalDate;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,13 @@ import org.springframework.validation.DataBinder;
 import rentit.com.common.application.service.IdentifierFactoryService;
 import rentit.com.common.domain.model.BusinessPeriod;
 import rentit.com.common.domain.validation.BusinessPeriodValidator;
+import rentit.com.common.exceptions.ExtensionNotFound;
 import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.inventory.application.service.InventoryService;
 import rentit.com.inventory.domain.model.PlantReservation;
+import rentit.com.sales.domain.model.Extension;
 import rentit.com.sales.domain.model.PurchaseOrder;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 import rentit.com.sales.domain.repository.PurchaseOrderRepository;
@@ -59,14 +62,8 @@ public class SalesService {
 
 	private void reservePO(PurchaseOrder po) throws PlantNotFoundException {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
-		if( reservation == null ){ //In case no plant was available, save PO with rejected status
-			po.setStatus(POStatus.REJECTED);
-			poRepo.save(po);
-			throw new PlantNotFoundException(po.getId()); 
-		}else {
-			po.setReservationId(reservation.getId());
-			po.setTotal(reservation.calculateTotalCost());
-		}
+		po.setReservationId(reservation.getId());
+		po.setTotal(reservation.calculateTotalCost());
 	}
 
 	private static void validatePO(PurchaseOrder po, boolean isPostValidate) throws InvalidFieldException {
@@ -81,11 +78,11 @@ public class SalesService {
 
 	public PurchaseOrder modifyPO(long poId, BusinessPeriod rentalPeriod) throws PurchaseOrderNotFoundException, PlantNotFoundException, InvalidFieldException {
 		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
-		if (existingPO.getStatus() != POStatus.REJECTED) 
+		if (existingPO.getStatus() != POStatus.REJECTED) //Treat it as not found
 			throw new PurchaseOrderNotFoundException(poId);
 		
 		existingPO.setRentalPeriod(rentalPeriod);
-		existingPO.setStatus(POStatus.PENDING);
+		existingPO.setStatus(POStatus.PENDING_CONFIRMATION);
 		
 		validatePO(existingPO, false);
 		
@@ -97,6 +94,26 @@ public class SalesService {
 	public PurchaseOrder modifyPoState(long poId, POStatus newStatus) throws PurchaseOrderNotFoundException{
 		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
 		existingPO.setStatus(newStatus);
+		return poRepo.save(existingPO);
+	}
+
+	public PurchaseOrder extendPoRentalPeriod(Long poId, LocalDate newEndDate) throws PurchaseOrderNotFoundException {
+		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
+		existingPO.setExtension(Extension.of(idFactory.nextPoExtensionID(), newEndDate));
+		existingPO.setStatus(POStatus.PENDING_EXTENSION);
+		return poRepo.save(existingPO);
+	}
+
+	public PurchaseOrder handleExtension(Long poId, Long eid, boolean accept) throws ExtensionNotFound, PurchaseOrderNotFoundException {
+		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
+		if(!existingPO.getExtension().getExtensionId().equals(eid))
+			throw new ExtensionNotFound(poId, eid);
+		
+		if(accept)
+			existingPO.setRentalPeriod(BusinessPeriod.of(existingPO.getRentalPeriod().getStartDate(), existingPO.getExtension().getNewEndDate()));
+		
+		existingPO.setExtension(null);
+		existingPO.setStatus(POStatus.OPEN);
 		return poRepo.save(existingPO);
 	}
 }

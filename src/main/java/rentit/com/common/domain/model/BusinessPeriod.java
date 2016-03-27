@@ -8,6 +8,7 @@ import javax.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Value;
+import rentit.com.common.application.dto.BusinessPeriodDTO;
 
 @Embeddable
 @Value
@@ -20,4 +21,8 @@ public class BusinessPeriod {
 	
 	@Column(name="END_DATE")
 	private LocalDate endDate;
+	
+	public static BusinessPeriod fromDto(BusinessPeriodDTO period){
+		return BusinessPeriod.of(period.getStartDate(), period.getEndDate());
+	}
 }

@@ -18,4 +18,8 @@ public class IdentifierFactoryService {
     public long nextPlantReservationID(){
     	return idGenerator.getID("PlantReservationSequence");
     }
+    
+    public long nextPoExtensionID(){
+    	return idGenerator.getID("PoExtensionIDSequence");
+    }
 }

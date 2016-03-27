@@ -1,5 +1,6 @@
 package rentit.com.sales.web;
 
+import java.time.LocalDate;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import rentit.com.common.application.dto.BusinessPeriodDTO;
-import rentit.com.common.application.dto.BusinessPeriodDTOAssembler;
+import rentit.com.common.domain.model.BusinessPeriod;
 import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
@@ -32,9 +33,6 @@ public class DashboardController {
 	private SalesService salesService;
 	
 	@Autowired
-	private BusinessPeriodDTOAssembler dtoAssembler;
-	
-	@Autowired
 	private PlantInvEntryAssembler entryAssembler;
 	
 	@Autowired
@@ -43,7 +41,7 @@ public class DashboardController {
 	@RequestMapping("catalog/form")
 	public String queryForm(Model model) {
 		CatalogQueryDTO catalogQuery = new CatalogQueryDTO();
-		catalogQuery.setRentalPeriod(BusinessPeriodDTO.of("yyyy-MM-dd", "yyyy-MM-dd"));
+		catalogQuery.setRentalPeriod(BusinessPeriodDTO.of(LocalDate.now(), LocalDate.now().plusDays(1)));
 		model.addAttribute("catalogQuery", catalogQuery);
 		
 		return "dashboard/catalog/query-form";
@@ -51,7 +49,7 @@ public class DashboardController {
 	
 	@RequestMapping("catalog/query")
 	public String executeQuery(CatalogQueryDTO query, Model model) throws InvalidFieldException {
-		Collection<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), dtoAssembler.businessPeriodFromDTO(query.getRentalPeriod()));
+		Collection<PlantInvEntry> entries = plantCatalog.findAvailablePlants(query.getName(), BusinessPeriod.fromDto(query.getRentalPeriod()));
 		model.addAttribute("plants", entryAssembler.toResources(entries));
 		model.addAttribute("rentalPeriod", query.getRentalPeriod());
 		
@@ -60,7 +58,7 @@ public class DashboardController {
 
 	@RequestMapping("/orders")
 	public String createPO(Long plantId, String plantName, String plantDescription, BusinessPeriodDTO rentalPeriod, Model model) throws InvalidFieldException, PlantNotFoundException {
-		PurchaseOrder po = salesService.createAndProcessPO(plantId, dtoAssembler.businessPeriodFromDTO(rentalPeriod));
+		PurchaseOrder po = salesService.createAndProcessPO(plantId, BusinessPeriod.fromDto(rentalPeriod));
 		model.addAttribute("po", poAssembler.toResource(po) );
 		
 		return "dashboard/catalog/order";

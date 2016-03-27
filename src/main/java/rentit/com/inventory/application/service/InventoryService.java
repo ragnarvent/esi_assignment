@@ -8,9 +8,10 @@ import org.springframework.stereotype.Service;
 
 import rentit.com.common.application.service.IdentifierFactoryService;
 import rentit.com.common.domain.model.BusinessPeriod;
+import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.inventory.domain.model.PlantInvItem;
-import rentit.com.inventory.domain.model.PlantReservation;
 import rentit.com.inventory.domain.model.PlantInvItem.EquipmentCondition;
+import rentit.com.inventory.domain.model.PlantReservation;
 import rentit.com.inventory.domain.repository.PlantInvItemRepository;
 import rentit.com.inventory.domain.repository.PlantReservationRepository;
 
@@ -26,12 +27,12 @@ public class InventoryService {
 	@Autowired
 	private IdentifierFactoryService idFactory;
 
-	public PlantReservation reservePlant(long poId, long plantEntryId, BusinessPeriod rentalPeriod) {
+	public PlantReservation reservePlant(long poId, long plantEntryId, BusinessPeriod rentalPeriod) throws PlantNotFoundException {
 		//Find all available plant items and filter out the ones that are not serviceable(could also be done with SQL)
 		List<PlantInvItem> plantItems = plantItemRepo.findAvailablePlantItems(plantEntryId, rentalPeriod.getStartDate(), rentalPeriod.getEndDate())
 											.stream().filter(p->p.getCondition() == EquipmentCondition.SERVICEABLE).collect(Collectors.toList());
 		if(plantItems.isEmpty())
-			return null;
+			throw new PlantNotFoundException(poId); 
 		
 		//Create new reservation for first available plant
 		PlantReservation reservation = PlantReservation.of(idFactory.nextPlantReservationID(), plantItems.get(0), rentalPeriod);

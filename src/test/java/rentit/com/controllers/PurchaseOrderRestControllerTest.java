@@ -5,11 +5,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,14 +44,13 @@ import rentit.com.common.application.dto.BusinessPeriodDTO;
 import rentit.com.inventory.application.dto.PlantInvEntryDTO;
 import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
-import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = RentitApplication.class)
 @WebAppConfiguration
 @Sql({"/schema.sql", "/plants-dataset.sql"})
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class SalesRestControllerTests {
+public class PurchaseOrderRestControllerTest {
 	
 	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	
@@ -72,7 +72,7 @@ public class SalesRestControllerTests {
 
 	@Test
 	public void testGetAllPlants() throws Exception {
-		MvcResult result = mockMvc.perform(get("/api/sales/plants?name=Exc&startDate=2016-03-14&endDate=2016-03-25"))
+		MvcResult result = mockMvc.perform(get(getDefaultGetPlantsUri()))
 				.andExpect(status().isOk())
 				.andExpect(header().string("Location", isEmptyOrNullString()))
 				.andReturn();
@@ -86,38 +86,30 @@ public class SalesRestControllerTests {
 		//Test successfully creating new PO
 		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(order)).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated()).andReturn();
-		
+	}
+	
+	private static String formatDate(LocalDate date){
+		return date.format(formatter);
 	}
 	
 	@Test	
 	public void testModifyExistingPO() throws Exception{
 		final LocalDate now = LocalDate.now();
 		
-		//Create initial PO
-		PurchaseOrderDTO initialOrder = createPO(1L, now, now.plusDays(3));
-		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(initialOrder)).contentType(MediaType.APPLICATION_JSON))
-		.andExpect(status().isCreated());
+		//Create PO
+		PurchaseOrderDTO partialOrder = createPO(1L, now, now.plusDays(3));
 		
-		//Try to create new PO
-		PurchaseOrderDTO rejectedOrder = createPO(1L,now.plusDays(1),now.plusDays(5));
-		mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(rejectedOrder)).contentType(MediaType.APPLICATION_JSON))
-		.andExpect(status().isNotFound());  //Will fail because plant is already reserved for that period, PO will be set as REJECTED
+		MvcResult poResult = mockMvc.perform(post("/api/sales/orders").content(mapper.writeValueAsString(partialOrder)).contentType(MediaType.APPLICATION_JSON))
+		.andExpect(status().isCreated()).andReturn();
+		PurchaseOrderDTO createdPo = mapper.readValue(poResult.getResponse().getContentAsString(), new TypeReference<PurchaseOrderDTO>() {});
 		
-		//Get all POs
-		MvcResult result = mockMvc.perform(get("/api/sales/allorders"))
-				.andExpect(status().isOk())
-				.andExpect(header().string("Location", isEmptyOrNullString()))
-				.andReturn();
-		List<PurchaseOrderDTO> orders = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PurchaseOrderDTO>>() {});
-		assertThat(orders.size(), equalTo(3));
-		
-		//Find the rejected one
-		PurchaseOrderDTO rejectedPO = orders.stream().filter(o->o.getStatus() == POStatus.REJECTED).findFirst().get();
-		assertNotNull(rejectedPO);
+		//Reject PO
+		mockMvc.perform(delete(String.format("/api/sales/orders/%s/accept", createdPo.getPoId())))
+			.andExpect(status().isOk());
 		
 		//Modify existing PO, set startDate and endDate to some available period
-		rejectedPO.setRentalPeriod(BusinessPeriodDTO.of(now.plusDays(10).format(formatter), now.plusDays(15).format(formatter)));
-		mockMvc.perform(post("/api/sales/modifyorder").content(mapper.writeValueAsString(rejectedPO)).contentType(MediaType.APPLICATION_JSON))
+		createdPo.setRentalPeriod(BusinessPeriodDTO.of(now.plusDays(10), now.plusDays(15)));
+		mockMvc.perform(put("/api/sales/orders/"+createdPo.getPoId()).content(mapper.writeValueAsString(createdPo)).contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk());
 	}
 	
@@ -131,7 +123,7 @@ public class SalesRestControllerTests {
 	
 	@Test
 	public void testFetchSinglePOFail() throws Exception{
-		mockMvc.perform(get("/api/sales//orders/55"))
+		mockMvc.perform(get("/api/sales/orders/55"))
 				.andExpect(status().isNotFound())
 				.andExpect(header().string("Location", isEmptyOrNullString()))
 				.andReturn();
@@ -146,7 +138,7 @@ public class SalesRestControllerTests {
 		.andExpect(status().isCreated());
 		
 		//Retrieve all PO's
-		MvcResult result1 = mockMvc.perform(get("/api/sales/allorders"))
+		MvcResult result1 = mockMvc.perform(get("/api/sales/orders"))
 				.andExpect(status().isOk())
 				.andExpect(header().string("Location", isEmptyOrNullString()))
 				.andReturn();
@@ -169,34 +161,40 @@ public class SalesRestControllerTests {
 	private static PurchaseOrderDTO createPO(long plantID, LocalDate startDate, LocalDate endDate) {
 		PurchaseOrderDTO order = new PurchaseOrderDTO();
 		order.setPlantId(plantID);
-		order.setRentalPeriod(BusinessPeriodDTO.of(startDate.toString(), endDate.toString()));
+		order.setRentalPeriod(BusinessPeriodDTO.of(startDate, endDate));
 		return order;
 	}
-
+	
+	public static String getDefaultGetPlantsUri(){
+		String startDate = formatDate(LocalDate.now());
+		String endDate = formatDate(LocalDate.now().plusDays(1));
+		return String.format("/api/inventory/plants?name=Exc&startDate=%s&endDate=%s", startDate, endDate);
+	}
+	
 	@Test
 	public void testPurchaseOrderAcceptance() throws Exception {
-	  MvcResult result = mockMvc.perform( get("/api/sales/plants?name=Exc&startDate=2016-03-14&endDate=2016-03-25")).andReturn();
-	  List<PlantInvEntryDTO> plants = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PlantInvEntryDTO>>() {});
+		MvcResult result = mockMvc.perform( get(getDefaultGetPlantsUri())).andReturn();
+		List<PlantInvEntryDTO> plants = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PlantInvEntryDTO>>() {});
 	
-	  PurchaseOrderDTO order = new PurchaseOrderDTO();
-	  order.setPlantId(plants.get(2).getEntryId());
+		PurchaseOrderDTO order = new PurchaseOrderDTO();
+		order.setPlantId(plants.get(2).getEntryId());
 	  
-	  String now = LocalDate.now().format(formatter);
-	  order.setRentalPeriod(BusinessPeriodDTO.of(now, now));
+		final LocalDate now = LocalDate.now();
+		order.setRentalPeriod(BusinessPeriodDTO.of(now, now));
 	
-	  result = mockMvc.perform(post("/api/sales/orders")
+		result = mockMvc.perform(post("/api/sales/orders")
 	                       .content(mapper.writeValueAsString(order))
 	                       .contentType(MediaType.APPLICATION_JSON))
-	  .andExpect(status().isCreated())
-	  .andExpect(header().string("Location", not(isEmptyOrNullString())))
-	      .andReturn();
+						.andExpect(status().isCreated())
+						.andExpect(header().string("Location", not(isEmptyOrNullString())))
+						.andReturn();
 	
-	  order = mapper.readValue(result.getResponse().getContentAsString(), PurchaseOrderDTO.class);
+		order = mapper.readValue(result.getResponse().getContentAsString(), PurchaseOrderDTO.class);
 	
-	  assertThat(order.getXlink("accept"), is(notNullValue()));
+		assertThat(order.getXlink("accept"), is(notNullValue()));
 	
-	  mockMvc.perform(post(order.getXlink("accept").getHref()))
-	      .andReturn();
+		mockMvc.perform(post(order.getXlink("accept").getHref()))
+	      	.andReturn();
 	}
 }
 

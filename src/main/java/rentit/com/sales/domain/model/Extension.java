@@ -1,5 +1,8 @@
 package rentit.com.sales.domain.model;
 
+
+import java.time.LocalDate;
+
 import javax.persistence.Embeddable;
 
 import lombok.AllArgsConstructor;
@@ -10,6 +13,9 @@ import lombok.Value;
 @Value
 @NoArgsConstructor(force=true,access=lombok.AccessLevel.PRIVATE)
 @AllArgsConstructor(staticName="of")
-public class Address {
-	private String address;
+public class Extension {
+	
+	private Long extensionId;
+	private LocalDate newEndDate;
+
 }

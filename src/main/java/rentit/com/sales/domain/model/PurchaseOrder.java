@@ -10,7 +10,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -22,7 +21,7 @@ import rentit.com.common.domain.model.BusinessPeriod;
 public class PurchaseOrder {
 
 	public static enum POStatus {
-		PENDING, REJECTED, OPEN, CLOSED;
+		PENDING_CONFIRMATION, PENDING_EXTENSION, REJECTED, OPEN, CLOSED;
 	}
 
 	@Id
@@ -34,9 +33,6 @@ public class PurchaseOrder {
 	@Column(name="plant_entry_id")
 	private long plantEntryId;
 
-	@ManyToOne
-	private Customer customer;
-	
 	private LocalDate issueDate;
 	
 	private LocalDate paymentSchedule;
@@ -48,9 +44,6 @@ public class PurchaseOrder {
 	private POStatus status;
 	
 	@Embedded
-	private Address siteAddr;
-	
-	@Embedded
 	private ContactPerson contact;
 	
 	@Embedded
@@ -59,12 +52,15 @@ public class PurchaseOrder {
 	@Embedded
 	private BusinessPeriod rentalPeriod;
 	
+	@Embedded
+	private Extension extension;
+	
 	public static PurchaseOrder of(long id, long plantEntryId, BusinessPeriod rentalPeriod){
 		PurchaseOrder po = new PurchaseOrder();
 		po.setId(id);
 		po.setPlantEntryId(plantEntryId);
 		po.setRentalPeriod(rentalPeriod);
-		po.setStatus(POStatus.PENDING);
+		po.setStatus(POStatus.PENDING_CONFIRMATION);
 		po.setIssueDate(LocalDate.now());
 		return po;
 	}
