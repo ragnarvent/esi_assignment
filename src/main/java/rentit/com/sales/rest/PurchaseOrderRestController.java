@@ -21,7 +21,6 @@ import rentit.com.common.exceptions.ExtensionNotFound;
 import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
-import rentit.com.sales.application.dto.ExtensionDTO;
 import rentit.com.sales.application.dto.PurchaseOrderAssembler;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
 import rentit.com.sales.application.service.SalesService;
@@ -92,8 +91,8 @@ public class PurchaseOrderRestController {
 	}
 	
 	@RequestMapping(method=RequestMethod.POST, path = "/{id}/extensions")
-	public PurchaseOrderDTO extendRentalPeriod(@PathVariable Long id, @RequestBody ExtensionDTO extension) throws PurchaseOrderNotFoundException {
-		return poAssembler.toResource(salesService.extendPoRentalPeriod(extension.getPoId(), extension.getNewEndDate()));
+	public PurchaseOrderDTO extendRentalPeriod(@PathVariable Long id, @RequestBody PurchaseOrderDTO partialPoDto) throws PurchaseOrderNotFoundException {
+		return poAssembler.toResource(salesService.extendPoRentalPeriod(id, partialPoDto.getRentalPeriod().getEndDate()));
 	}
 	
 	@RequestMapping(method=RequestMethod.DELETE, path = "/{oid}/extensions/{eid}/accept")
