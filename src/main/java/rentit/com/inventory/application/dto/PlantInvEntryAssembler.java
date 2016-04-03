@@ -13,7 +13,7 @@ import rentit.com.inventory.rest.PlantInventoryRestController;
 @Service
 public class PlantInvEntryAssembler extends ResourceAssemblerSupport<PlantInvEntry, PlantInvEntryDTO> {
 	
-	UriTemplate uriTemplate;
+	private UriTemplate uriTemplate;
 
 	public PlantInvEntryAssembler() {
         super(PlantInventoryRestController.class, PlantInvEntryDTO.class);
@@ -36,7 +36,6 @@ public class PlantInvEntryAssembler extends ResourceAssemblerSupport<PlantInvEnt
 	@Override
 	public PlantInvEntryDTO toResource(PlantInvEntry plant) {
 		PlantInvEntryDTO dto = createResourceWithId(plant.getId(), plant);
-		dto.setEntryId(plant.getId());
 		dto.setName(plant.getName());
 		dto.setDescription(plant.getDescription());
 		dto.setPrice(plant.getPrice());

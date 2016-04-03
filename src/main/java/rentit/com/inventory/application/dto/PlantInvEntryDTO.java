@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor(staticName="of")
 public class PlantInvEntryDTO extends ResourceSupport{
-	private long entryId;
 	private String name;
 	private String description;
 	private BigDecimal price;

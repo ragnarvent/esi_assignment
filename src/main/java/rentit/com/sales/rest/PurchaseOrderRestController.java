@@ -16,15 +16,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import rentit.com.common.domain.model.BusinessPeriod;
 import rentit.com.common.exceptions.ExtensionNotFound;
 import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
-import rentit.com.sales.application.dto.PurchaseOrderAssembler;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
 import rentit.com.sales.application.service.SalesService;
-import rentit.com.sales.domain.model.PurchaseOrder;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 
 @RestController
@@ -34,12 +31,9 @@ public class PurchaseOrderRestController {
     @Autowired
     private SalesService salesService;
     
-    @Autowired
-    private PurchaseOrderAssembler poAssembler;
-    
     @RequestMapping(method = RequestMethod.GET, path = "")
     public Collection<PurchaseOrderDTO> findAllPOs(){
-    	return poAssembler.toResources(salesService.fetchAllPOs());
+    	return salesService.fetchAllPOs();
     }
     
     /**
@@ -47,61 +41,59 @@ public class PurchaseOrderRestController {
      * Currently PO can only be rejected when non-existing Plant ID is used or if the plant has become unavailable.
      */   
     @RequestMapping(method = RequestMethod.PUT, path = "/{id}")
-    public ResponseEntity<PurchaseOrderDTO> modifyPurchaseOrder(@RequestBody PurchaseOrderDTO partialPoDto) throws PurchaseOrderNotFoundException, InvalidFieldException, URISyntaxException, PlantNotFoundException {
-        PurchaseOrder po = salesService.modifyPO(partialPoDto.getPoId(), BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
-    	PurchaseOrderDTO newPoDto = poAssembler.toResource(po);
+    public ResponseEntity<PurchaseOrderDTO> modifyPurchaseOrder(@PathVariable Long id, @RequestBody PurchaseOrderDTO partialPoDto) throws PurchaseOrderNotFoundException, InvalidFieldException, URISyntaxException, PlantNotFoundException {
+    	PurchaseOrderDTO po = salesService.modifyPO(partialPoDto);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI(newPoDto.getId().getHref()));
+        headers.setLocation(new URI(po.getId().getHref()));
 
-        return new ResponseEntity<PurchaseOrderDTO>(newPoDto, headers, HttpStatus.OK);
+        return new ResponseEntity<PurchaseOrderDTO>(po, headers, HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PurchaseOrderDTO fetchPurchaseOrder(@PathVariable("id") Long id) throws PurchaseOrderNotFoundException {
-    	return poAssembler.toResource(salesService.fetchPurchaseOrder(id));
+    public PurchaseOrderDTO show(@PathVariable("id") Long id) throws PurchaseOrderNotFoundException {
+    	return salesService.fetchPurchaseOrder(id);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "")
     public ResponseEntity<PurchaseOrderDTO> createPurchaseOrder(@RequestBody PurchaseOrderDTO partialPoDto) throws URISyntaxException, InvalidFieldException, PlantNotFoundException {
-    	PurchaseOrder po = salesService.createAndProcessPO(partialPoDto.getPlant().getEntryId(), BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
-    	PurchaseOrderDTO newPoDto = poAssembler.toResource(po);
+    	PurchaseOrderDTO po = salesService.createAndProcessPO(partialPoDto);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(new URI(newPoDto.getId().getHref()));
+        headers.setLocation(new URI(po.getId().getHref()));
 
-        return new ResponseEntity<PurchaseOrderDTO>(newPoDto, headers, HttpStatus.CREATED);
+        return new ResponseEntity<PurchaseOrderDTO>(po, headers, HttpStatus.CREATED);
     }
     
 	@RequestMapping(method=RequestMethod.POST, path = "/{id}/accept")
 	public PurchaseOrderDTO acceptPurchaseOrder(@PathVariable Long id) throws PurchaseOrderNotFoundException {
-		return poAssembler.toResource(salesService.modifyPoState(id, POStatus.OPEN));
+		return salesService.modifyPoState(id, POStatus.OPEN);
 	}
 
 	@RequestMapping(method=RequestMethod.DELETE, path = "/{id}/accept")
 	public PurchaseOrderDTO rejectPurchaseOrder(@PathVariable Long id) throws PurchaseOrderNotFoundException {
-		return poAssembler.toResource(salesService.modifyPoState(id, POStatus.REJECTED));
+		return salesService.modifyPoState(id, POStatus.REJECTED);
 	}
 	
 	@RequestMapping(method=RequestMethod.DELETE, path = "/{id}")
 	public PurchaseOrderDTO closePurchaseOrder(@PathVariable Long id) throws PurchaseOrderNotFoundException {
-		return poAssembler.toResource(salesService.modifyPoState(id, POStatus.CLOSED));
+		return salesService.modifyPoState(id, POStatus.CLOSED);
 	}
 	
 	@RequestMapping(method=RequestMethod.POST, path = "/{id}/extensions")
 	public PurchaseOrderDTO extendRentalPeriod(@PathVariable Long id, @RequestBody PurchaseOrderDTO partialPoDto) throws PurchaseOrderNotFoundException {
-		return poAssembler.toResource(salesService.extendPoRentalPeriod(id, partialPoDto.getRentalPeriod().getEndDate()));
+		return salesService.extendPoRentalPeriod(id, partialPoDto.getRentalPeriod().getEndDate());
 	}
 	
 	@RequestMapping(method=RequestMethod.DELETE, path = "/{oid}/extensions/{eid}/accept")
 	public PurchaseOrderDTO rejectRpExtension(@PathVariable Long oid, @PathVariable Long eid) throws PurchaseOrderNotFoundException, ExtensionNotFound {
-		return poAssembler.toResource(salesService.handleExtension(oid, eid, false));
+		return salesService.handleExtension(oid, eid, false);
 	}
 	
 	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/extensions/{eid}/accept")
 	public PurchaseOrderDTO acceptRpExtension(@PathVariable Long oid, @PathVariable Long eid) throws PurchaseOrderNotFoundException, ExtensionNotFound {
-		return poAssembler.toResource(salesService.handleExtension(oid, eid, true));
+		return salesService.handleExtension(oid, eid, true);
 	}
     
     @ExceptionHandler(InvalidFieldException.class)

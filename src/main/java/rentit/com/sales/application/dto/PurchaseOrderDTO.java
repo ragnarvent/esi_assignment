@@ -17,7 +17,6 @@ import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 @AllArgsConstructor(staticName="of")
 public class PurchaseOrderDTO extends ResourceSupport{
 	private PlantInvEntryDTO plant;
-	private long poId;
 	private BigDecimal cost;
 	private POStatus status;
 	private BusinessPeriodDTO rentalPeriod;

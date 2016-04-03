@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import rentit.com.common.domain.model.BusinessPeriod;
 import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
-import rentit.com.inventory.application.dto.PlantInvEntryAssembler;
 import rentit.com.inventory.application.dto.PlantInvEntryDTO;
 import rentit.com.inventory.application.service.PlantCatalogService;
 
@@ -25,9 +24,6 @@ import rentit.com.inventory.application.service.PlantCatalogService;
 @RequestMapping("/api/inventory/plants")
 public class PlantInventoryRestController {
 	
-    @Autowired
-    private PlantInvEntryAssembler entryAssembler;
-    
 	@Autowired
     private PlantCatalogService catalogService;
 	
@@ -37,12 +33,12 @@ public class PlantInventoryRestController {
             @RequestParam(name = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(name = "endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
             ) throws InvalidFieldException {
-    	return entryAssembler.toResources(catalogService.findAvailablePlants(plantName, BusinessPeriod.of(startDate, endDate)));
+    	return catalogService.findAvailablePlants(plantName, BusinessPeriod.of(startDate, endDate));
     }
     
     @RequestMapping(method = RequestMethod.GET, path = "/{id}")
     public PlantInvEntryDTO show(@PathVariable Long id) throws PlantNotFoundException {
-            return entryAssembler.toResource(catalogService.findPlant(id));
+            return catalogService.findPlant(id);
     }
     
 	@ExceptionHandler(PlantNotFoundException.class)

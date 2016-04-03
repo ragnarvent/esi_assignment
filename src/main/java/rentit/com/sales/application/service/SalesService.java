@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,10 @@ import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.inventory.application.service.InventoryService;
 import rentit.com.inventory.application.service.PlantCatalogService;
+import rentit.com.inventory.domain.model.PlantInvEntry;
 import rentit.com.inventory.domain.model.PlantReservation;
+import rentit.com.sales.application.dto.PurchaseOrderAssembler;
+import rentit.com.sales.application.dto.PurchaseOrderDTO;
 import rentit.com.sales.domain.model.Extension;
 import rentit.com.sales.domain.model.PurchaseOrder;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
@@ -39,39 +43,52 @@ public class SalesService {
 	private PurchaseOrderRepository poRepo;
 	
 	@Autowired
-	private PlantCatalogService catalog;
+	private PlantCatalogService catalogService;
 	
-	public Collection<PurchaseOrder> fetchAllPOs(){
-		return poRepo.findAll();
+	@Autowired
+	private PurchaseOrderAssembler poAssembler;
+	
+	public Collection<PurchaseOrderDTO> fetchAllPOs(){
+		return poAssembler.toResources(poRepo.findAll());
 	}
 	
-	public PurchaseOrder fetchPurchaseOrder( long id ) throws PurchaseOrderNotFoundException{
+	private PurchaseOrder findOrder(long id) throws PurchaseOrderNotFoundException{
 		PurchaseOrder order = poRepo.findOne(id);
 		if( order == null )
 			throw new PurchaseOrderNotFoundException(id);
 		return order;
 	}
 	
-	public PurchaseOrder createAndProcessPO(long plantId, BusinessPeriod rentalPeriod) throws InvalidFieldException, PlantNotFoundException{
-		PurchaseOrder po = PurchaseOrder.of(idFactory.nextPurchaseOrderID(), plantId, rentalPeriod);
+	public PurchaseOrderDTO fetchPurchaseOrder( long id ) throws PurchaseOrderNotFoundException{
+		return poAssembler.toResource(findOrder(id));
+	}
+	
+	public PurchaseOrder findPoFullRepresentation(PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException {
+	    long id = poAssembler.resolveId(Objects.requireNonNull(poDto.getLink("self")));
+	    return findOrder(id);
+	}
+	
+	public PurchaseOrderDTO createAndProcessPO(PurchaseOrderDTO partialPoDto) throws InvalidFieldException, PlantNotFoundException{
+		PlantInvEntry plantEntry = catalogService.findPlantFullRepresentation(partialPoDto.getPlant());
+		
+		PurchaseOrder po = PurchaseOrder.of(idFactory.nextPurchaseOrderID(), plantEntry.getId(), BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
 		
 		validatePO(po, false); // pre-validate
 		
 		poRepo.save(po); //Save valid PO
 		
-		reservePO(po);	
+		reservePO(po, plantEntry);	
 		
 		validatePO(po, true); // post-validate 
 		
-		return poRepo.save(po); //Save PO after successful reservation
+		return poAssembler.toResource(poRepo.save(po)); //Save PO after successful reservation
 	}
 
-	private void reservePO(PurchaseOrder po) throws PlantNotFoundException {
+	private void reservePO(PurchaseOrder po, PlantInvEntry plantEntry) throws PlantNotFoundException {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
 		po.setReservationId(reservation.getId());
 		
-		final BigDecimal price = catalog.findPlant(po.getPlantEntryId()).getPrice();
-		po.setTotal(price.multiply(BigDecimal.valueOf(ChronoUnit.DAYS.between(po.getRentalPeriod().getStartDate(), po.getRentalPeriod().getEndDate())+1)));
+		po.setTotal(plantEntry.getPrice().multiply(BigDecimal.valueOf(ChronoUnit.DAYS.between(po.getRentalPeriod().getStartDate(), po.getRentalPeriod().getEndDate())+1)));
 	}
 
 	private static void validatePO(PurchaseOrder po, boolean isPostValidate) throws InvalidFieldException {
@@ -84,36 +101,36 @@ public class SalesService {
 		}
 	}
 
-	public PurchaseOrder modifyPO(long poId, BusinessPeriod rentalPeriod) throws PurchaseOrderNotFoundException, PlantNotFoundException, InvalidFieldException {
-		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
+	public PurchaseOrderDTO modifyPO(PurchaseOrderDTO partialPoDto) throws PurchaseOrderNotFoundException, PlantNotFoundException, InvalidFieldException {
+		PurchaseOrder existingPO = findPoFullRepresentation(partialPoDto);
 		if (existingPO.getStatus() != POStatus.REJECTED) //Treat it as not found
-			throw new PurchaseOrderNotFoundException(poId);
+			throw new PurchaseOrderNotFoundException(existingPO.getId());
 		
-		existingPO.setRentalPeriod(rentalPeriod);
+		existingPO.setRentalPeriod(BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
 		existingPO.setStatus(POStatus.PENDING_CONFIRMATION);
 		
 		validatePO(existingPO, false);
 		
-		reservePO(existingPO);
+		reservePO(existingPO, catalogService.findPlantFullRepresentation(partialPoDto.getPlant()));
 		
-		return poRepo.save(existingPO);
+		return poAssembler.toResource(poRepo.save(existingPO));
 	}
 	
-	public PurchaseOrder modifyPoState(long poId, POStatus newStatus) throws PurchaseOrderNotFoundException{
-		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
+	public PurchaseOrderDTO modifyPoState(long poId, POStatus newStatus) throws PurchaseOrderNotFoundException{
+		PurchaseOrder existingPO = findOrder(poId);
 		existingPO.setStatus(newStatus);
-		return poRepo.save(existingPO);
+		return poAssembler.toResource(poRepo.save(existingPO));
 	}
 
-	public PurchaseOrder extendPoRentalPeriod(Long poId, LocalDate newEndDate) throws PurchaseOrderNotFoundException {
-		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
+	public PurchaseOrderDTO extendPoRentalPeriod(Long poId, LocalDate newEndDate) throws PurchaseOrderNotFoundException {
+		PurchaseOrder existingPO = findOrder(poId);
 		existingPO.setExtension(Extension.of(idFactory.nextPoExtensionID(), newEndDate));
 		existingPO.setStatus(POStatus.PENDING_EXTENSION);
-		return poRepo.save(existingPO);
+		return poAssembler.toResource(poRepo.save(existingPO));
 	}
 
-	public PurchaseOrder handleExtension(Long poId, Long eid, boolean accept) throws ExtensionNotFound, PurchaseOrderNotFoundException {
-		PurchaseOrder existingPO = fetchPurchaseOrder(poId);
+	public PurchaseOrderDTO handleExtension(Long poId, Long eid, boolean accept) throws ExtensionNotFound, PurchaseOrderNotFoundException {
+		PurchaseOrder existingPO = findOrder(poId);
 		if(!existingPO.getExtension().getExtensionId().equals(eid))
 			throw new ExtensionNotFound(poId, eid);
 		
@@ -122,6 +139,6 @@ public class SalesService {
 		
 		existingPO.setExtension(null);
 		existingPO.setStatus(POStatus.OPEN);
-		return poRepo.save(existingPO);
+		return poAssembler.toResource(poRepo.save(existingPO));
 	}
 }
