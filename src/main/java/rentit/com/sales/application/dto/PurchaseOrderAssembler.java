@@ -84,13 +84,17 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
                     dto.add(new ExtendedLink(
                             linkTo(methodOn(PurchaseOrderRestController.class)
                               .acceptRpExtension(order.getId(), order.getExtension().getExtensionId())).toString(),
-                            "accept", POST));
+                            "acceptExtention", POST));
                     dto.add(new ExtendedLink(
                             linkTo(methodOn(PurchaseOrderRestController.class)
                               .rejectRpExtension(order.getId(), order.getExtension().getExtensionId())).toString(),
-                            "reject", DELETE));
+                            "rejectExtention", DELETE));
                 	break;
                 case OPEN:
+                    dto.add(new ExtendedLink(
+                            linkTo(methodOn(PurchaseOrderRestController.class)
+                              .extendRentalPeriod(order.getId(), null)).toString(),
+                            "extend", POST));
                 	dto.add(createDeleteLink(order.getId()));
                 	break;
                default: break;
