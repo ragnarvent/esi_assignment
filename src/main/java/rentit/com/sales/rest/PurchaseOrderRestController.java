@@ -37,7 +37,6 @@ public class PurchaseOrderRestController {
     @Autowired
     private PurchaseOrderAssembler poAssembler;
     
-
     @RequestMapping(method = RequestMethod.GET, path = "")
     public Collection<PurchaseOrderDTO> findAllPOs(){
     	return poAssembler.toResources(salesService.fetchAllPOs());
@@ -66,7 +65,7 @@ public class PurchaseOrderRestController {
 
     @RequestMapping(method = RequestMethod.POST, path = "")
     public ResponseEntity<PurchaseOrderDTO> createPurchaseOrder(@RequestBody PurchaseOrderDTO partialPoDto) throws URISyntaxException, InvalidFieldException, PlantNotFoundException {
-    	PurchaseOrder po = salesService.createAndProcessPO(partialPoDto.getPlantId(), BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
+    	PurchaseOrder po = salesService.createAndProcessPO(partialPoDto.getPlant().getEntryId(), BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
     	PurchaseOrderDTO newPoDto = poAssembler.toResource(po);
 
         HttpHeaders headers = new HttpHeaders();

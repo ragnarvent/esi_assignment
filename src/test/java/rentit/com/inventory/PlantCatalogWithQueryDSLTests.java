@@ -31,8 +31,8 @@ import rentit.com.RentitApplication;
 import rentit.com.common.domain.model.BusinessPeriod;
 import rentit.com.inventory.domain.model.PlantInvEntry;
 import rentit.com.inventory.domain.model.PlantInvItem;
-import rentit.com.inventory.domain.model.PlantReservation;
 import rentit.com.inventory.domain.model.PlantInvItem.EquipmentCondition;
+import rentit.com.inventory.domain.model.PlantReservation;
 import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
 import rentit.com.inventory.domain.repository.PlantInvItemRepository;
 import rentit.com.inventory.domain.repository.PlantReservationRepository;
@@ -65,7 +65,7 @@ public class PlantCatalogWithQueryDSLTests {
 	@Test
 	public void findAvailableByNameAndPeriodTest() {
 		List<PlantInvEntry> entries = Lists.newArrayList(plantRepo.findAll(nameContains("Mini").and(isAvailableFor(BusinessPeriod.of(LocalDate.of(2016, 3, 22), LocalDate.of(2016, 3, 27))))));
-		assertThat(entries.size(), equalTo(2));
+		assertThat(entries.size(), equalTo(1));
 	}
 	
 	@Test

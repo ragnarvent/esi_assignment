@@ -1,15 +1,11 @@
 package rentit.com.inventory.domain.model;
 
 
-import java.math.BigDecimal;
-import java.time.temporal.ChronoUnit;
-
 import javax.jdo.annotations.PersistenceCapable;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -27,8 +23,8 @@ public class PlantReservation {
 	@Embedded
 	private BusinessPeriod rentalPeriod;
 	
-	@OneToOne
-	private PlantInvItem plant;
+	@Column(name="plant_id")
+	private String plantItemId;
 	
 	@Column(name="maintplan_id")
 	private Long maintPlanId; 
@@ -36,16 +32,12 @@ public class PlantReservation {
 	@Column(name="rental_id")
 	private Long rentalId;
 	
-	public static PlantReservation of(long id, PlantInvItem plantItem, BusinessPeriod rentalPeriod){
+	public static PlantReservation of(long id, String plantItemId, BusinessPeriod rentalPeriod){
 		PlantReservation r = new PlantReservation();
 		r.setId(id);
-		r.setPlant(plantItem);
+		r.setPlantItemId(plantItemId);
 		r.setRentalPeriod(rentalPeriod);
 		return r;
 	}
 	
-	public BigDecimal calculateTotalCost() {
-		//End exclusive, so add +1
-		return plant.getPlantInfo().getPrice().multiply(BigDecimal.valueOf(ChronoUnit.DAYS.between(rentalPeriod.getStartDate(), rentalPeriod.getEndDate())+1));
-	}
 }

@@ -160,7 +160,11 @@ public class PurchaseOrderRestControllerTest {
 
 	private static PurchaseOrderDTO createPO(long plantID, LocalDate startDate, LocalDate endDate) {
 		PurchaseOrderDTO order = new PurchaseOrderDTO();
-		order.setPlantId(plantID);
+		
+		PlantInvEntryDTO entry = new PlantInvEntryDTO();
+		entry.setEntryId(plantID);
+		
+		order.setPlant(entry);
 		order.setRentalPeriod(BusinessPeriodDTO.of(startDate, endDate));
 		return order;
 	}
@@ -175,12 +179,9 @@ public class PurchaseOrderRestControllerTest {
 	public void testPurchaseOrderAcceptance() throws Exception {
 		MvcResult result = mockMvc.perform( get(getDefaultGetPlantsUri())).andReturn();
 		List<PlantInvEntryDTO> plants = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<PlantInvEntryDTO>>() {});
-	
-		PurchaseOrderDTO order = new PurchaseOrderDTO();
-		order.setPlantId(plants.get(2).getEntryId());
-	  
+		
 		final LocalDate now = LocalDate.now();
-		order.setRentalPeriod(BusinessPeriodDTO.of(now, now));
+		PurchaseOrderDTO order = createPO(plants.get(2).getEntryId(), now, now);
 	
 		result = mockMvc.perform(post("/api/sales/orders")
 	                       .content(mapper.writeValueAsString(order))

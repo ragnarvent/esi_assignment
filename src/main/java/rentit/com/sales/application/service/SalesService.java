@@ -1,6 +1,8 @@
 package rentit.com.sales.application.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.inventory.application.service.InventoryService;
+import rentit.com.inventory.application.service.PlantCatalogService;
 import rentit.com.inventory.domain.model.PlantReservation;
 import rentit.com.sales.domain.model.Extension;
 import rentit.com.sales.domain.model.PurchaseOrder;
@@ -34,6 +37,9 @@ public class SalesService {
 
 	@Autowired
 	private PurchaseOrderRepository poRepo;
+	
+	@Autowired
+	private PlantCatalogService catalog;
 	
 	public Collection<PurchaseOrder> fetchAllPOs(){
 		return poRepo.findAll();
@@ -63,7 +69,9 @@ public class SalesService {
 	private void reservePO(PurchaseOrder po) throws PlantNotFoundException {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
 		po.setReservationId(reservation.getId());
-		po.setTotal(reservation.calculateTotalCost());
+		
+		final BigDecimal price = catalog.findPlant(po.getPlantEntryId()).getPrice();
+		po.setTotal(price.multiply(BigDecimal.valueOf(ChronoUnit.DAYS.between(po.getRentalPeriod().getStartDate(), po.getRentalPeriod().getEndDate())+1)));
 	}
 
 	private static void validatePO(PurchaseOrder po, boolean isPostValidate) throws InvalidFieldException {

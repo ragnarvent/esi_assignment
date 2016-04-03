@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import rentit.com.common.application.dto.BusinessPeriodDTO;
 import rentit.com.common.rest.ExtendedLink;
+import rentit.com.inventory.application.dto.PlantInvEntryAssembler;
 import rentit.com.inventory.domain.model.PlantInvEntry;
 import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
 import rentit.com.sales.domain.model.PurchaseOrder;
@@ -23,7 +24,9 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
 
 	@Autowired
 	PlantInvEntryRepository entryRepo;
-
+	
+	@Autowired
+	PlantInvEntryAssembler plantEntryAssembler;
 
 	public PurchaseOrderAssembler() {
 		super(PurchaseOrder.class, PurchaseOrderDTO.class);
@@ -32,12 +35,10 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
 	@Override
 	public PurchaseOrderDTO toResource(PurchaseOrder order) {
 		PurchaseOrderDTO dto = createResourceWithId(order.getId(), order);
-		dto.setPlantId(order.getId());
 		dto.setPoId(order.getId());
 
 		PlantInvEntry plantEntry = entryRepo.findOne(order.getPlantEntryId());
-		dto.setName(plantEntry.getName());
-		dto.setDescription(plantEntry.getDescription());
+		dto.setPlant(plantEntryAssembler.toResource(plantEntry));
 
 		dto.setCost(order.getTotal());
 		dto.setStatus(order.getStatus());

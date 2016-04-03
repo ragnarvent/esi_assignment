@@ -35,10 +35,11 @@ public class InventoryService {
 			throw new PlantNotFoundException(poId); 
 		
 		//Create new reservation for first available plant
-		PlantReservation reservation = PlantReservation.of(idFactory.nextPlantReservationID(), plantItems.get(0), rentalPeriod);
+		PlantReservation reservation = PlantReservation.of(idFactory.nextPlantReservationID(), plantItems.get(0).getSerialNumber(), rentalPeriod);
 		reservation.setRentalId(poId);
 		reservationRepo.save(reservation);
 		
 		return reservation;
 	}
+	
 }

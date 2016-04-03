@@ -23,8 +23,8 @@ import rentit.com.RentitApplication;
 import rentit.com.common.domain.model.BusinessPeriod;
 import rentit.com.inventory.domain.model.PlantInvEntry;
 import rentit.com.inventory.domain.model.PlantInvItem;
-import rentit.com.inventory.domain.model.PlantReservation;
 import rentit.com.inventory.domain.model.PlantInvItem.EquipmentCondition;
+import rentit.com.inventory.domain.model.PlantReservation;
 import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
 import rentit.com.inventory.domain.repository.PlantInvItemRepository;
 import rentit.com.inventory.domain.repository.PlantReservationRepository;
@@ -75,7 +75,7 @@ public class PlantCatalogTests {
 		
 		//Create Reserve period
 		PlantReservation pReserve = new PlantReservation();
-		pReserve.setPlant(p.getItems().get(0));
+		pReserve.setPlantItemId(plantInvRepo.findAvailablePlantItems(p.getId(), rentalPeriod.getStartDate(), rentalPeriod.getEndDate()).get(0).getSerialNumber());
 		pReserve.setRentalId(po.getId());
 		pReserve.setRentalPeriod(rentalPeriod);
 		plantReserve.save(pReserve);
