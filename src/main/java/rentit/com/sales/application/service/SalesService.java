@@ -86,6 +86,12 @@ public class SalesService {
 
 	private void reservePO(PurchaseOrder po, PlantInvEntry plantEntry) throws PlantNotFoundException {
 		final PlantReservation reservation = inventoryService.reservePlant(po.getId(), po.getPlantEntryId(),po.getRentalPeriod());
+		if( reservation == null ){
+			po.setStatus(POStatus.REJECTED);
+			poRepo.save(po);
+			throw new PlantNotFoundException(po.getId(), poAssembler.toResource(po).getLink("self").getHref());
+		}
+		
 		po.setReservationId(reservation.getId());
 		
 		po.setTotal(plantEntry.getPrice().multiply(BigDecimal.valueOf(ChronoUnit.DAYS.between(po.getRentalPeriod().getStartDate(), po.getRentalPeriod().getEndDate())+1)));

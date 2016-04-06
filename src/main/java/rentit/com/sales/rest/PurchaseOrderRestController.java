@@ -20,6 +20,7 @@ import rentit.com.common.exceptions.ExtensionNotFound;
 import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
+import rentit.com.common.exceptions.dto.RentitExceptionDTO;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
 import rentit.com.sales.application.service.SalesService;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
@@ -103,7 +104,12 @@ public class PurchaseOrderRestController {
     
 	@ExceptionHandler({PlantNotFoundException.class, PurchaseOrderNotFoundException.class, ExtensionNotFound.class})
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public void handNotFoundException(Exception ex) {
+	public RentitExceptionDTO handNotFoundException(Exception ex) {
+		if( ex instanceof PlantNotFoundException && ((PlantNotFoundException) ex).getUri() != null){
+			PlantNotFoundException e = (PlantNotFoundException) ex;
+			return RentitExceptionDTO.of(e.getMessage(), e.getUri());
+		}
+		return null;
 	}
 	
 }

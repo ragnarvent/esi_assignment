@@ -33,7 +33,7 @@ public class PlantCatalogService {
 	public PlantInvEntryDTO findPlant(Long id) throws PlantNotFoundException {
 		PlantInvEntry entry = plantEntryRepo.findOne(id);
 		if(entry == null)
-			throw new PlantNotFoundException(id);
+			throw new PlantNotFoundException(id, null);
 		return entryAssembler.toResource(entry);
 	}
 	
