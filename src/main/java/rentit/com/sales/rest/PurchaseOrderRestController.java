@@ -1,8 +1,11 @@
 package rentit.com.sales.rest;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+
+import javax.mail.MessagingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -21,9 +24,11 @@ import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.common.exceptions.dto.RentitExceptionDTO;
+import rentit.com.invoicing.integration.InvoiceGateway;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
 import rentit.com.sales.application.service.SalesService;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
+
 
 @RestController
 @RequestMapping("/api/sales/orders")
@@ -36,6 +41,9 @@ public class PurchaseOrderRestController {
     public Collection<PurchaseOrderDTO> findAllPOs(){
     	return salesService.fetchAllPOs();
     }
+    
+    @Autowired
+    private InvoiceGateway invoiceGw;
     
     /**
      * Method that allows the modification of rejected Purchase order.
@@ -95,6 +103,11 @@ public class PurchaseOrderRestController {
 	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/extensions/{eid}/accept")
 	public PurchaseOrderDTO acceptRpExtension(@PathVariable Long oid, @PathVariable Long eid) throws PurchaseOrderNotFoundException, ExtensionNotFound {
 		return salesService.handleExtension(oid, eid, true);
+	}
+	
+	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/invoice")
+	public void createInvoice(@PathVariable Long oid, @RequestBody PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException, MessagingException, IOException{
+		invoiceGw.sendInvoice(salesService.createInvoiceFromPo(oid));
 	}
     
     @ExceptionHandler(InvalidFieldException.class)

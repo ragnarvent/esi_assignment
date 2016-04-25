@@ -1,10 +1,14 @@
 package rentit.com.sales.application.service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Objects;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,9 @@ public class SalesService {
 	
 	@Autowired
 	private PlantCatalogService catalogService;
+	
+	@Autowired
+	private InvoiceService invoiceService;
 	
 	@Autowired
 	private PurchaseOrderAssembler poAssembler;
@@ -146,5 +153,10 @@ public class SalesService {
 		existingPO.setExtension(null);
 		existingPO.setStatus(POStatus.OPEN);
 		return poAssembler.toResource(poRepo.save(existingPO));
+	}
+
+	public MimeMessage createInvoiceFromPo(Long poId) throws PurchaseOrderNotFoundException, MessagingException, IOException {
+		PurchaseOrderDTO existingPO = fetchPurchaseOrder(poId);
+		return invoiceService.composeMail(poId, existingPO.getLink("self").getHref(), existingPO.getCost());
 	}
 }
