@@ -95,6 +95,10 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
                             linkTo(methodOn(PurchaseOrderRestController.class)
                               .extendRentalPeriod(order.getId(), null)).toString(),
                             "extend", POST));
+                    dto.add(new ExtendedLink(
+                            linkTo(methodOn(PurchaseOrderRestController.class)
+                              .createInvoice(order.getId(), null)).toString(),
+                            "invoice", POST));
                 	dto.add(createDeleteLink(order.getId()));
                 	break;
                default: break;

@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.common.exceptions.dto.RentitExceptionDTO;
 import rentit.com.invoicing.integration.InvoiceGateway;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
+import rentit.com.sales.application.service.InvoiceService;
 import rentit.com.sales.application.service.SalesService;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 
@@ -44,6 +46,9 @@ public class PurchaseOrderRestController {
     
     @Autowired
     private InvoiceGateway invoiceGw;
+    
+	@Autowired
+	private InvoiceService invoiceService;
     
     /**
      * Method that allows the modification of rejected Purchase order.
@@ -106,8 +111,11 @@ public class PurchaseOrderRestController {
 	}
 	
 	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/invoice")
-	public void createInvoice(@PathVariable Long oid, @RequestBody PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException, MessagingException, IOException{
-		invoiceGw.sendInvoice(salesService.createInvoiceFromPo(oid));
+	public PurchaseOrderDTO createInvoice(@PathVariable Long oid, @RequestBody PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException, MessagingException, IOException{
+		PurchaseOrderDTO poDtoFull = salesService.fetchPurchaseOrder(oid);
+		MimeMessage msg = invoiceService.composeMail(oid, poDtoFull.getLink("self").getHref(), poDtoFull.getCost());
+		invoiceGw.sendInvoice(msg);
+		return poDtoFull;
 	}
     
     @ExceptionHandler(InvalidFieldException.class)
