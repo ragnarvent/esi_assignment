@@ -56,7 +56,7 @@ public class InvoiceService {
 			poHrefElem.appendChild(doc.createTextNode(poHref));
 			rootElement.appendChild(poHrefElem);
 
-			Element totalElem = doc.createElement("purchaseOrderHRef");
+			Element totalElem = doc.createElement("total");
 			totalElem.appendChild(doc.createTextNode(new DecimalFormat("#0.##").format(total)));
 			rootElement.appendChild(totalElem);
 
