@@ -3,17 +3,17 @@ package rentit.com.sales.domain.model;
 import java.math.BigDecimal;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
+@Entity
 @Data
-@EqualsAndHashCode(callSuper=false)
-@NoArgsConstructor
+@Table(name="invoices")
 public class Invoice {
 	public static enum InvoiceStatus{
 		SENT, PAID;

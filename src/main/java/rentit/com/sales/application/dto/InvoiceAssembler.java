@@ -3,12 +3,14 @@ package rentit.com.sales.application.dto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.stereotype.Service;
 
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.sales.application.service.SalesService;
 import rentit.com.sales.domain.model.Invoice;
 import rentit.com.sales.rest.PurchaseOrderRestController;
 
+@Service
 public class InvoiceAssembler extends ResourceAssemblerSupport<Invoice, InvoiceDTO> {
 	
 	@Autowired
