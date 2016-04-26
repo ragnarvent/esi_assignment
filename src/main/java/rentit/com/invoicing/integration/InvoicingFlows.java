@@ -24,5 +24,18 @@ public class InvoicingFlows {
 						.javaMailProperties(p -> p.put("mail.debug", "false")))
 				.get();
 	}
+	
+	@Bean
+	IntegrationFlow processInvoiceFlow() {
+		return IntegrationFlows
+				.from(Mail.imapIdleAdapter(
+								String.format("imaps://%s:%s@imap.gmail.com/INBOX", gmailUsername, gmailPassword))
+						.selectorExpression("subject matches '.*remittance.*'"))
+				.transform("@remittanceAdviceProcessor.extractRemittanceAdvice(payload)")
+				.route("#xpath(payload, '//total <= 800', 'string')",
+						mapping -> mapping.subFlowMapping("true", sf -> sf.handle("remittanceAdviceProcessor", "processRemittanceAdvice"))
+								.subFlowMapping("false", sf -> sf.handle(System.out::println)))
+				.get();
+	}
 
 }

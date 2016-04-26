@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -25,7 +24,7 @@ import rentit.com.common.exceptions.InvalidFieldException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.common.exceptions.dto.RentitExceptionDTO;
-import rentit.com.invoicing.integration.InvoiceGateway;
+import rentit.com.sales.application.dto.InvoiceDTO;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
 import rentit.com.sales.application.service.InvoiceService;
 import rentit.com.sales.application.service.SalesService;
@@ -43,9 +42,6 @@ public class PurchaseOrderRestController {
     public Collection<PurchaseOrderDTO> findAllPOs(){
     	return salesService.fetchAllPOs();
     }
-    
-    @Autowired
-    private InvoiceGateway invoiceGw;
     
 	@Autowired
 	private InvoiceService invoiceService;
@@ -110,13 +106,18 @@ public class PurchaseOrderRestController {
 		return salesService.handleExtension(oid, eid, true);
 	}
 	
-	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/invoice")
-	public PurchaseOrderDTO createInvoice(@PathVariable Long oid, @RequestBody PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException, MessagingException, IOException{
+	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/invoices")
+	public InvoiceDTO createInvoice(@PathVariable Long oid, @RequestBody PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException, MessagingException, IOException{
 		PurchaseOrderDTO poDtoFull = salesService.fetchPurchaseOrder(oid);
-		MimeMessage msg = invoiceService.composeMail(oid, poDtoFull.getLink("self").getHref(), poDtoFull.getCost());
-		invoiceGw.sendInvoice(msg);
-		return poDtoFull;
+		InvoiceDTO invoice = invoiceService.sendInvoice(oid, poDtoFull.getLink("self").getHref(), poDtoFull.getCost());
+		return invoice;
 	}
+	
+    @RequestMapping(method = RequestMethod.GET, path = "/invoices")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<InvoiceDTO> findAllInvoices() {
+    	return invoiceService.findAllInvoices();
+    }
     
     @ExceptionHandler(InvalidFieldException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)

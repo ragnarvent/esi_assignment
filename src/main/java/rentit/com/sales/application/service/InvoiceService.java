@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.Collection;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -16,6 +17,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -23,10 +25,44 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import rentit.com.common.application.service.IdentifierFactoryService;
+import rentit.com.invoicing.integration.InvoiceGateway;
+import rentit.com.sales.application.dto.InvoiceAssembler;
+import rentit.com.sales.application.dto.InvoiceDTO;
+import rentit.com.sales.domain.model.Invoice;
+import rentit.com.sales.domain.repository.InvoiceRepository;
+
 @Service
 public class InvoiceService {
+	
+	@Autowired
+	private InvoiceRepository invoiceRepo;
+	
+    @Autowired
+    private InvoiceGateway invoiceGw;
+    
+    @Autowired
+    private IdentifierFactoryService idFactory;
+    
+    @Autowired
+    private InvoiceAssembler invoiceAssembler;
+    
+	public Collection<InvoiceDTO> findAllInvoices() {
+		return invoiceAssembler.toResources(invoiceRepo.findAll());
+	}
+    
+    public InvoiceDTO sendInvoice(long poId, String poRef, BigDecimal total) throws MessagingException, IOException {
+    	MimeMessage msg = composeMail(poId, poRef, total);
+    	
+    	invoiceGw.sendInvoice(msg);
+    	
+    	Invoice invoice = Invoice.of(idFactory.nextInvoiceID(), poId, total);
+    	invoiceRepo.save(invoice);
+    	
+    	return invoiceAssembler.toResource(invoice);
+    }
 
-	public MimeMessage composeMail(long poId, String poRef, BigDecimal total) throws MessagingException, IOException {
+	private MimeMessage composeMail(long poId, String poRef, BigDecimal total) throws MessagingException, IOException {
 		JavaMailSender mailSender = new JavaMailSenderImpl();
 		String invoice = buildXML(poRef, total);
 
@@ -40,7 +76,7 @@ public class InvoiceService {
 				poId));
 
 		helper.addAttachment(String.format("invoice-po-%d.xml", poId), new ByteArrayDataSource(invoice, "application/xml"));
-
+		
 		return rootMessage;
 	}
 
@@ -69,4 +105,5 @@ public class InvoiceService {
 			return "";
 		}
 	}
+
 }

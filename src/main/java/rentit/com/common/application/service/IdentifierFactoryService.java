@@ -22,4 +22,8 @@ public class IdentifierFactoryService {
     public long nextPoExtensionID(){
     	return idGenerator.getID("PoExtensionIDSequence");
     }
+    
+    public long nextInvoiceID(){
+    	return idGenerator.getID("InvoiceIDSequence");
+    }
 }

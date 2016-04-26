@@ -29,10 +29,10 @@ import rentit.com.sales.rest.PurchaseOrderRestController;
 public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrder, PurchaseOrderDTO> {
 
 	@Autowired
-	PlantInvEntryRepository entryRepo;
+	private PlantInvEntryRepository entryRepo;
 	
 	@Autowired
-	PlantInvEntryAssembler plantEntryAssembler;
+	private PlantInvEntryAssembler plantEntryAssembler;
 	
 	private UriTemplate uriTemplate;
 
@@ -115,6 +115,10 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
 	}
 	
     public long resolveId(Link link) {
-        return Long.parseLong(uriTemplate.match(link.getHref()).get("id"));
+        return resolveIdByHref(link.getHref());
+    }
+    
+    public long resolveIdByHref(String href) {
+        return Long.parseLong(uriTemplate.match(href).get("id"));
     }
 }
