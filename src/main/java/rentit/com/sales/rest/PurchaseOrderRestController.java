@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import rentit.com.common.exceptions.ExtensionNotFound;
 import rentit.com.common.exceptions.InvalidFieldException;
+import rentit.com.common.exceptions.InvoiceNotFoundException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.common.exceptions.dto.RentitExceptionDTO;
@@ -113,6 +114,12 @@ public class PurchaseOrderRestController {
 		return invoice;
 	}
 	
+	@RequestMapping(method=RequestMethod.POST, path = "/{id}/invoices/remind")
+	public InvoiceDTO remindUnpaidInvoice(@PathVariable Long id, @RequestBody InvoiceDTO invoiceDto) throws InvoiceNotFoundException, MessagingException, IOException, PurchaseOrderNotFoundException{
+		return invoiceService.remindInvoice(id);
+	}
+	
+	
     @RequestMapping(method = RequestMethod.GET, path = "/invoices")
     @ResponseStatus(HttpStatus.OK)
     public Collection<InvoiceDTO> findAllInvoices() {
@@ -124,7 +131,7 @@ public class PurchaseOrderRestController {
 	public void handInvalidField(InvalidFieldException ex) {
 	}
     
-	@ExceptionHandler({PlantNotFoundException.class, PurchaseOrderNotFoundException.class, ExtensionNotFound.class})
+	@ExceptionHandler({PlantNotFoundException.class, PurchaseOrderNotFoundException.class, ExtensionNotFound.class, InvoiceNotFoundException.class})
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public RentitExceptionDTO handNotFoundException(Exception ex) {
 		if( ex instanceof PlantNotFoundException && ((PlantNotFoundException) ex).getUri() != null){

@@ -26,6 +26,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import rentit.com.common.application.service.IdentifierFactoryService;
+import rentit.com.common.exceptions.InvoiceNotFoundException;
+import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.invoicing.integration.InvoiceGateway;
 import rentit.com.sales.application.dto.InvoiceAssembler;
 import rentit.com.sales.application.dto.InvoiceDTO;
@@ -52,7 +54,11 @@ public class InvoiceService {
 	}
     
     public InvoiceDTO sendInvoice(long poId, String poRef, BigDecimal total) throws MessagingException, IOException {
-    	MimeMessage msg = composeMail(poId, poRef, total);
+    	String subject = String.format("Invoice Purchase Order %d", poId);
+    	String text = String.format( 
+    			"Dear customer,\n\nPlease find attached the Invoice corresponding to your Purchase Order %d.\n\nKindly yours,\n\nRentIt Team!",
+				poId);
+    	MimeMessage msg = composeMail(poId, poRef, total, subject, text);
     	
     	invoiceGw.sendInvoice(msg);
     	
@@ -62,7 +68,7 @@ public class InvoiceService {
     	return invoiceAssembler.toResource(invoice);
     }
 
-	private MimeMessage composeMail(long poId, String poRef, BigDecimal total) throws MessagingException, IOException {
+	private MimeMessage composeMail(long poId, String poRef, BigDecimal total, String subject, String text) throws MessagingException, IOException {
 		JavaMailSender mailSender = new JavaMailSenderImpl();
 		String invoice = buildXML(poRef, total);
 
@@ -70,10 +76,6 @@ public class InvoiceService {
 		MimeMessageHelper helper = new MimeMessageHelper(rootMessage, true);
 		helper.setFrom("rentit@gmail.com");
 		helper.setTo("buildit@gmail.com");
-		helper.setSubject(String.format("Invoice Purchase Order %d", poId));
-		helper.setText(String.format(
-				"Dear customer,\n\nPlease find attached the Invoice corresponding to your Purchase Order %d.\n\nKindly yours,\n\nRentIt Team!",
-				poId));
 
 		helper.addAttachment(String.format("invoice-po-%d.xml", poId), new ByteArrayDataSource(invoice, "application/xml"));
 		
@@ -105,5 +107,28 @@ public class InvoiceService {
 			return "";
 		}
 	}
+	
+	private Invoice findInvoice(Long id) throws InvoiceNotFoundException{
+		Invoice invoice = invoiceRepo.findOne(id);
+		if( invoice == null ){
+			throw new InvoiceNotFoundException(id);
+		}
+		return invoice;
+	}
 
+	public InvoiceDTO remindInvoice(Long id) throws InvoiceNotFoundException, MessagingException, IOException, PurchaseOrderNotFoundException {
+		Invoice invoice = findInvoice(id);
+		
+    	String subject = String.format("Reminder of an unpaid invoice for purchase order %d ", invoice.getPoId());
+    	String text = String.format( 
+    			"Dear customer,\n\nWe kindly remind you of an unpaid invoice with regard to purchase order %d.\n\nRentIt Team!",
+    			invoice.getPoId());
+    	
+    	InvoiceDTO dto = invoiceAssembler.toResource(invoice);
+		MimeMessage msg = composeMail(invoice.getPoId(), dto.getLink("purchaseorder").getHref(), invoice.getTotal(), subject, text);
+		
+		invoiceGw.sendInvoice(msg);
+		
+		return dto;
+	}
 }

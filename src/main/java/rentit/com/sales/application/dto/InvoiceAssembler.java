@@ -1,11 +1,16 @@
 package rentit.com.sales.application.dto;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.http.HttpMethod.POST;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Service;
 
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
+import rentit.com.common.rest.ExtendedLink;
 import rentit.com.sales.application.service.SalesService;
 import rentit.com.sales.domain.model.Invoice;
 import rentit.com.sales.rest.PurchaseOrderRestController;
@@ -33,6 +38,18 @@ public class InvoiceAssembler extends ResourceAssemblerSupport<Invoice, InvoiceD
 		} catch (PurchaseOrderNotFoundException e) {
 			e.printStackTrace();
 		}
+		
+		try {
+			switch(invoice.getStatus()){
+				case PAID:
+	               	 dto.add(new ExtendedLink(
+	                         linkTo(methodOn(PurchaseOrderRestController.class)
+	                           .remindUnpaidInvoice(invoice.getId(), null)).toString(),
+	                         "remind", POST));
+					break;
+				default: break;
+			}
+		} catch(Exception _skip){}
 
 		return dto;
 	}
