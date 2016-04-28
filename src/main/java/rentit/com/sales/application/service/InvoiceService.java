@@ -74,8 +74,10 @@ public class InvoiceService {
 
 		MimeMessage rootMessage = mailSender.createMimeMessage();
 		MimeMessageHelper helper = new MimeMessageHelper(rootMessage, true);
-		helper.setFrom("rentit@gmail.com");
-		helper.setTo("buildit@gmail.com");
+		helper.setFrom("rentitbuildit@gmail.com");
+		helper.setTo("rentitbuildit@gmail.com");
+		helper.setSubject(subject);
+		helper.setText(text);
 
 		helper.addAttachment(String.format("invoice-po-%d.xml", poId), new ByteArrayDataSource(invoice, "application/xml"));
 		
