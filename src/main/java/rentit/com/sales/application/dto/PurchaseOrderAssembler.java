@@ -20,6 +20,7 @@ import rentit.com.common.rest.ExtendedLink;
 import rentit.com.inventory.application.dto.PlantInvEntryAssembler;
 import rentit.com.inventory.domain.model.PlantInvEntry;
 import rentit.com.inventory.domain.repository.PlantInvEntryRepository;
+import rentit.com.invoicing.rest.InvoiceController;
 import rentit.com.sales.domain.model.PurchaseOrder;
 import rentit.com.sales.rest.PurchaseOrderRestController;
 
@@ -96,7 +97,7 @@ public class PurchaseOrderAssembler extends ResourceAssemblerSupport<PurchaseOrd
                               .extendRentalPeriod(order.getId(), null)).toString(),
                             "extend", POST));
                     dto.add(new ExtendedLink(
-                            linkTo(methodOn(PurchaseOrderRestController.class)
+                            linkTo(methodOn(InvoiceController.class)
                               .createInvoice(order.getId(), null)).toString(),
                             "invoice", POST));
                 	dto.add(createDeleteLink(order.getId()));

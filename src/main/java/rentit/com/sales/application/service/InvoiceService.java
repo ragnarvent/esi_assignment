@@ -28,9 +28,9 @@ import org.w3c.dom.Element;
 import rentit.com.common.application.service.IdentifierFactoryService;
 import rentit.com.common.exceptions.InvoiceNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
+import rentit.com.invoicing.dto.InvoiceAssembler;
+import rentit.com.invoicing.dto.InvoiceDTO;
 import rentit.com.invoicing.integration.InvoiceGateway;
-import rentit.com.sales.application.dto.InvoiceAssembler;
-import rentit.com.sales.application.dto.InvoiceDTO;
 import rentit.com.sales.domain.model.Invoice;
 import rentit.com.sales.domain.repository.InvoiceRepository;
 

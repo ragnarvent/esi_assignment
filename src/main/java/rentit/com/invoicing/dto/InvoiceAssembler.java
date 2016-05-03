@@ -1,4 +1,4 @@
-package rentit.com.sales.application.dto;
+package rentit.com.invoicing.dto;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.common.rest.ExtendedLink;
+import rentit.com.invoicing.rest.InvoiceController;
 import rentit.com.sales.application.service.SalesService;
 import rentit.com.sales.domain.model.Invoice;
-import rentit.com.sales.rest.PurchaseOrderRestController;
 
 @Service
 public class InvoiceAssembler extends ResourceAssemblerSupport<Invoice, InvoiceDTO> {
@@ -22,7 +22,7 @@ public class InvoiceAssembler extends ResourceAssemblerSupport<Invoice, InvoiceD
 	private SalesService salesService;
 
 	public InvoiceAssembler() {
-		super(PurchaseOrderRestController.class, InvoiceDTO.class);
+		super(InvoiceController.class, InvoiceDTO.class);
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class InvoiceAssembler extends ResourceAssemblerSupport<Invoice, InvoiceD
 			switch(invoice.getStatus()){
 				case PAID:
 	               	 dto.add(new ExtendedLink(
-	                         linkTo(methodOn(PurchaseOrderRestController.class)
+	                         linkTo(methodOn(InvoiceController.class)
 	                           .remindUnpaidInvoice(invoice.getId(), null)).toString(),
 	                         "remind", POST));
 					break;

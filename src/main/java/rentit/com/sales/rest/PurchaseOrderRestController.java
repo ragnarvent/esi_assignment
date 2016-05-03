@@ -1,11 +1,8 @@
 package rentit.com.sales.rest;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
-
-import javax.mail.MessagingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -21,13 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import rentit.com.common.exceptions.ExtensionNotFound;
 import rentit.com.common.exceptions.InvalidFieldException;
-import rentit.com.common.exceptions.InvoiceNotFoundException;
 import rentit.com.common.exceptions.PlantNotFoundException;
 import rentit.com.common.exceptions.PurchaseOrderNotFoundException;
 import rentit.com.common.exceptions.dto.RentitExceptionDTO;
-import rentit.com.sales.application.dto.InvoiceDTO;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
-import rentit.com.sales.application.service.InvoiceService;
 import rentit.com.sales.application.service.SalesService;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 
@@ -43,9 +37,6 @@ public class PurchaseOrderRestController {
     public Collection<PurchaseOrderDTO> findAllPOs(){
     	return salesService.fetchAllPOs();
     }
-    
-	@Autowired
-	private InvoiceService invoiceService;
     
     /**
      * Method that allows the modification of rejected Purchase order.
@@ -107,31 +98,12 @@ public class PurchaseOrderRestController {
 		return salesService.handleExtension(oid, eid, true);
 	}
 	
-	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/invoices")
-	public InvoiceDTO createInvoice(@PathVariable Long oid, @RequestBody PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException, MessagingException, IOException{
-		PurchaseOrderDTO poDtoFull = salesService.fetchPurchaseOrder(oid);
-		InvoiceDTO invoice = invoiceService.sendInvoice(oid, poDtoFull.getLink("self").getHref(), poDtoFull.getCost());
-		return invoice;
-	}
-	
-	@RequestMapping(method=RequestMethod.POST, path = "/{id}/invoices/remind")
-	public InvoiceDTO remindUnpaidInvoice(@PathVariable Long id, @RequestBody InvoiceDTO invoiceDto) throws InvoiceNotFoundException, MessagingException, IOException, PurchaseOrderNotFoundException{
-		return invoiceService.remindInvoice(id);
-	}
-	
-	
-    @RequestMapping(method = RequestMethod.GET, path = "/invoices")
-    @ResponseStatus(HttpStatus.OK)
-    public Collection<InvoiceDTO> findAllInvoices() {
-    	return invoiceService.findAllInvoices();
-    }
-    
     @ExceptionHandler(InvalidFieldException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public void handInvalidField(InvalidFieldException ex) {
 	}
     
-	@ExceptionHandler({PlantNotFoundException.class, PurchaseOrderNotFoundException.class, ExtensionNotFound.class, InvoiceNotFoundException.class})
+	@ExceptionHandler({PlantNotFoundException.class, PurchaseOrderNotFoundException.class, ExtensionNotFound.class})
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public RentitExceptionDTO handNotFoundException(Exception ex) {
 		if( ex instanceof PlantNotFoundException && ((PlantNotFoundException) ex).getUri() != null){

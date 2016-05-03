@@ -1,4 +1,4 @@
-package rentit.com.sales.application.dto;
+package rentit.com.invoicing.dto;
 
 import java.math.BigDecimal;
 
