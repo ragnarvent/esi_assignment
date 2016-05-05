@@ -32,9 +32,10 @@ public class InvoicingFlows {
 								String.format("imaps://%s:%s@imap.gmail.com/INBOX", gmailUsername, gmailPassword))
 						.selectorExpression("subject matches '.*[rR]emittance.*'"))
 				.transform("@remittanceAdviceProcessor.extractRemittanceAdvice(payload)")
-				.route("#xpath(payload, 'string')",
-						mapping -> mapping.subFlowMapping("true", sf -> sf.handle("remittanceAdviceProcessor", "processRemittanceAdvice"))
-								.subFlowMapping("false", sf -> sf.handle(System.out::println)))
+				.handle("remittanceAdviceProcessor", "processRemittanceAdvice")
+//				.route("#xpath(payload, 'string')",
+//						mapping -> mapping.subFlowMapping("true", sf -> sf.handle("remittanceAdviceProcessor", "processRemittanceAdvice"))
+//								.subFlowMapping("false", sf -> sf.handle(System.out::println)))
 				.get();
 	}
 
