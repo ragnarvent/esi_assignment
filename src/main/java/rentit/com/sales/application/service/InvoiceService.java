@@ -75,7 +75,7 @@ public class InvoiceService {
 		MimeMessage rootMessage = mailSender.createMimeMessage();
 		MimeMessageHelper helper = new MimeMessageHelper(rootMessage, true);
 		helper.setFrom("rentitbuildit@gmail.com");
-		helper.setTo("rentitbuildit@gmail.com");
+		helper.setTo("builditapplic@gmail.com");
 		helper.setSubject(subject);
 		helper.setText(text);
 

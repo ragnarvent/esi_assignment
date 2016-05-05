@@ -46,7 +46,7 @@ public class RemittanceAdviceProcessor {
 		Multipart multipart = (Multipart) msg.getContent();
 		for (int i = 0; i < multipart.getCount(); i++) {
 			BodyPart bodyPart = multipart.getBodyPart(i);
-			if (bodyPart.getContentType().contains("xml") && bodyPart.getFileName().startsWith("invoice"))
+			if (bodyPart.getContentType().contains("xml") && bodyPart.getFileName().startsWith("remittance"))
 				return IOUtils.toString(bodyPart.getInputStream(), "UTF-8");
 		}
 		throw new Exception("Oops ... no invoice found in email");

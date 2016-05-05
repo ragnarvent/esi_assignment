@@ -44,7 +44,7 @@ public class InvoiceController {
 		return invoiceService.remindInvoice(id);
 	}
 	
-    @RequestMapping(method = RequestMethod.GET, path = "/invoices")
+    @RequestMapping(method = RequestMethod.GET, path = "")
     @ResponseStatus(HttpStatus.OK)
     public Collection<InvoiceDTO> findAllInvoices() {
     	return invoiceService.findAllInvoices();
