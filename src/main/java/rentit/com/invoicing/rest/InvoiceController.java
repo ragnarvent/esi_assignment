@@ -32,19 +32,19 @@ public class InvoiceController {
 	@Autowired
 	private SalesService salesService;
 	
-	@RequestMapping(method=RequestMethod.POST, path = "/{oid}/invoices")
+	@RequestMapping(method=RequestMethod.POST, path = "/{oid}") //Created via order id
 	public InvoiceDTO createInvoice(@PathVariable Long oid, @RequestBody PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException, MessagingException, IOException{
 		PurchaseOrderDTO poDtoFull = salesService.fetchPurchaseOrder(oid);
 		InvoiceDTO invoice = invoiceService.sendInvoice(oid, poDtoFull.getLink("self").getHref(), poDtoFull.getCost());
 		return invoice;
 	}
 	
-	@RequestMapping(method=RequestMethod.POST, path = "/{id}/invoices/remind")
+	@RequestMapping(method=RequestMethod.POST, path = "/{id}/remind")
 	public InvoiceDTO remindUnpaidInvoice(@PathVariable Long id, @RequestBody InvoiceDTO invoiceDto) throws InvoiceNotFoundException, MessagingException, IOException, PurchaseOrderNotFoundException{
 		return invoiceService.remindInvoice(id);
 	}
 	
-    @RequestMapping(method = RequestMethod.GET, path = "/invoices")
+    @RequestMapping(method = RequestMethod.GET, path = "")
     @ResponseStatus(HttpStatus.OK)
     public Collection<InvoiceDTO> findAllInvoices() {
     	return invoiceService.findAllInvoices();
