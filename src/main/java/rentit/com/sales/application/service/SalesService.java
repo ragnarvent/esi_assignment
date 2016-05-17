@@ -89,7 +89,7 @@ public class SalesService {
 		if( reservation == null ){
 			po.setStatus(POStatus.REJECTED);
 			poRepo.save(po);
-			throw new PlantNotFoundException(po.getId(), poAssembler.toResource(po).getLink("self").getHref());
+			throw new PlantNotFoundException(plantEntry.getId(), poAssembler.toResource(po).getLink("self").getHref());
 		}
 		
 		po.setReservationId(reservation.getId());
