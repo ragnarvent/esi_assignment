@@ -24,17 +24,21 @@ public class PurchaseOrder {
 		PENDING_CONFIRMATION, PENDING_EXTENSION, REJECTED, OPEN, CLOSED;
 	}
 
+	public static enum POPlantStatus {
+	    IN_DEPO, DISPATCHED, DELIVERED, REJECTED_BY_CUSTOMER, RETURNED
+	}
+
 	@Id
 	private long id;
-	
+
 	@Column(name="reservation_id")
 	private Long reservationId;
-	
+
 	@Column(name="plant_entry_id")
 	private long plantEntryId;
 
 	private LocalDate issueDate;
-	
+
 	private LocalDate paymentSchedule;
 
 	@Column(precision = 8, scale = 2)
@@ -42,25 +46,29 @@ public class PurchaseOrder {
 
 	@Enumerated(EnumType.STRING)
 	private POStatus status;
-	
+
+	@Enumerated(EnumType.STRING)
+	private POPlantStatus plantStatus;
+
 	@Embedded
 	private ContactPerson contact;
-	
+
 	@Embedded
 	private List<Comment> notes;
-	
+
 	@Embedded
 	private BusinessPeriod rentalPeriod;
-	
+
 	@Embedded
 	private Extension extension;
-	
+
 	public static PurchaseOrder of(long id, long plantEntryId, BusinessPeriod rentalPeriod){
 		PurchaseOrder po = new PurchaseOrder();
 		po.setId(id);
 		po.setPlantEntryId(plantEntryId);
 		po.setRentalPeriod(rentalPeriod);
 		po.setStatus(POStatus.PENDING_CONFIRMATION);
+		po.setPlantStatus(POPlantStatus.IN_DEPO);
 		po.setIssueDate(LocalDate.now());
 		return po;
 	}

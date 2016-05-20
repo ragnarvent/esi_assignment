@@ -25,6 +25,7 @@ import rentit.com.sales.application.dto.PurchaseOrderAssembler;
 import rentit.com.sales.application.dto.PurchaseOrderDTO;
 import rentit.com.sales.domain.model.Extension;
 import rentit.com.sales.domain.model.PurchaseOrder;
+import rentit.com.sales.domain.model.PurchaseOrder.POPlantStatus;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 import rentit.com.sales.domain.repository.PurchaseOrderRepository;
 import rentit.com.sales.domain.validation.ContactPersonValidator;
@@ -32,55 +33,55 @@ import rentit.com.sales.domain.validation.PurchaseOrderValidator;
 
 @Service
 public class SalesService {
-	
+
 	@Autowired
 	private IdentifierFactoryService idFactory;
-	
+
 	@Autowired
 	private InventoryService inventoryService;
 
 	@Autowired
 	private PurchaseOrderRepository poRepo;
-	
+
 	@Autowired
 	private PlantCatalogService catalogService;
-	
+
 	@Autowired
 	private PurchaseOrderAssembler poAssembler;
-	
+
 	public Collection<PurchaseOrderDTO> fetchAllPOs(){
 		return poAssembler.toResources(poRepo.findAll());
 	}
-	
+
 	private PurchaseOrder findOrder(long id) throws PurchaseOrderNotFoundException{
 		PurchaseOrder order = poRepo.findOne(id);
 		if( order == null )
 			throw new PurchaseOrderNotFoundException(id);
 		return order;
 	}
-	
+
 	public PurchaseOrderDTO fetchPurchaseOrder( long id ) throws PurchaseOrderNotFoundException{
 		return poAssembler.toResource(findOrder(id));
 	}
-	
+
 	public PurchaseOrder findPoFullRepresentation(PurchaseOrderDTO poDto) throws PurchaseOrderNotFoundException {
-	    long id = poAssembler.resolveId(Objects.requireNonNull(poDto.getLink("self")));
-	    return findOrder(id);
+		long id = poAssembler.resolveId(Objects.requireNonNull(poDto.getLink("self")));
+		return findOrder(id);
 	}
-	
+
 	public PurchaseOrderDTO createAndProcessPO(PurchaseOrderDTO partialPoDto) throws InvalidFieldException, PlantNotFoundException{
 		PlantInvEntry plantEntry = catalogService.findPlantFullRepresentation(partialPoDto.getPlant());
-		
+
 		PurchaseOrder po = PurchaseOrder.of(idFactory.nextPurchaseOrderID(), plantEntry.getId(), BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
-		
+
 		validatePO(po, false); // pre-validate
-		
+
 		poRepo.save(po); //Save valid PO
-		
-		reservePO(po, plantEntry);	
-		
-		validatePO(po, true); // post-validate 
-		
+
+		reservePO(po, plantEntry);
+
+		validatePO(po, true); // post-validate
+
 		return poAssembler.toResource(poRepo.save(po)); //Save PO after successful reservation
 	}
 
@@ -91,9 +92,9 @@ public class SalesService {
 			poRepo.save(po);
 			throw new PlantNotFoundException(plantEntry.getId(), poAssembler.toResource(po).getLink("self").getHref());
 		}
-		
+
 		po.setReservationId(reservation.getId());
-		
+
 		po.setTotal(plantEntry.getPrice().multiply(BigDecimal.valueOf(ChronoUnit.DAYS.between(po.getRentalPeriod().getStartDate(), po.getRentalPeriod().getEndDate())+1)));
 	}
 
@@ -101,7 +102,7 @@ public class SalesService {
 		DataBinder binder = new DataBinder(po);
 		binder.addValidators(new PurchaseOrderValidator(new BusinessPeriodValidator(), new ContactPersonValidator(), isPostValidate));
 		binder.validate();
-		
+
 		if(binder.getBindingResult().hasFieldErrors()){
 			throw new InvalidFieldException(binder.getBindingResult().getFieldError().getDefaultMessage()); //Alternatively we could list all the errors in PO fields
 		}
@@ -111,20 +112,27 @@ public class SalesService {
 		PurchaseOrder existingPO = findPoFullRepresentation(partialPoDto);
 		if (existingPO.getStatus() != POStatus.REJECTED) //Treat it as not found
 			throw new PurchaseOrderNotFoundException(existingPO.getId());
-		
+
 		existingPO.setRentalPeriod(BusinessPeriod.fromDto(partialPoDto.getRentalPeriod()));
 		existingPO.setStatus(POStatus.PENDING_CONFIRMATION);
-		
+		existingPO.setPlantStatus(POPlantStatus.IN_DEPO);
+
 		validatePO(existingPO, false);
-		
+
 		reservePO(existingPO, catalogService.findPlantFullRepresentation(partialPoDto.getPlant()));
-		
+
 		return poAssembler.toResource(poRepo.save(existingPO));
 	}
-	
+
 	public PurchaseOrderDTO modifyPoState(long poId, POStatus newStatus) throws PurchaseOrderNotFoundException{
 		PurchaseOrder existingPO = findOrder(poId);
 		existingPO.setStatus(newStatus);
+		return poAssembler.toResource(poRepo.save(existingPO));
+	}
+
+	public PurchaseOrderDTO modifyPoPlantState(long poId, POPlantStatus newStatus) throws PurchaseOrderNotFoundException {
+		PurchaseOrder existingPO = findOrder(poId);
+		existingPO.setPlantStatus(newStatus);
 		return poAssembler.toResource(poRepo.save(existingPO));
 	}
 
@@ -139,10 +147,10 @@ public class SalesService {
 		PurchaseOrder existingPO = findOrder(poId);
 		if(!existingPO.getExtension().getExtensionId().equals(eid))
 			throw new ExtensionNotFound(poId, eid);
-		
+
 		if(accept)
 			existingPO.setRentalPeriod(BusinessPeriod.of(existingPO.getRentalPeriod().getStartDate(), existingPO.getExtension().getNewEndDate()));
-		
+
 		existingPO.setExtension(null);
 		existingPO.setStatus(POStatus.OPEN);
 		return poAssembler.toResource(poRepo.save(existingPO));

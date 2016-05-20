@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import rentit.com.common.application.dto.BusinessPeriodDTO;
 import rentit.com.common.rest.ResourceSupport;
 import rentit.com.inventory.application.dto.PlantInvEntryDTO;
+import rentit.com.sales.domain.model.PurchaseOrder.POPlantStatus;
 import rentit.com.sales.domain.model.PurchaseOrder.POStatus;
 
 @Data
@@ -19,5 +20,6 @@ public class PurchaseOrderDTO extends ResourceSupport{
 	private PlantInvEntryDTO plant;
 	private BigDecimal cost;
 	private POStatus status;
+	private POPlantStatus poPlantStatus;
 	private BusinessPeriodDTO rentalPeriod;
 }

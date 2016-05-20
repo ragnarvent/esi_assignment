@@ -22,18 +22,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(staticName="of")
 @Table(name="plant_inventory_item")
 public class PlantInvItem {
-	
+
 	public static enum EquipmentCondition{
 		SERVICEABLE,REPAIRABLE,INCOMPLETE,CONDEMNED;
 	}
-	
+
 	@Id
 	@Column(name="id")
 	private String serialNumber;
-	
+
 	@Enumerated(EnumType.STRING)
 	private EquipmentCondition condition;
-	
+
 	@ManyToOne
 	@JoinColumn(name="PLANTINFO_ID")
 	private PlantInvEntry plantInfo;
