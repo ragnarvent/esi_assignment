@@ -10,6 +10,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +38,17 @@ public class RentitApplication {
 					.configure(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS, false)
 					.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 					.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false).registerModules(new JavaTimeModule());
+		}
+		
+		@Bean
+		public WebMvcConfigurer corsConfigurer() {
+			return new WebMvcConfigurerAdapter() {
+				@Override
+				public void addCorsMappings(CorsRegistry registry) {
+					registry.addMapping("/**").allowedOrigins("http://192.168.99.100:8001").allowedMethods("GET","POST","PUT","DELETE");
+					registry.addMapping("/**").allowedOrigins("http://localhost:8001").allowedMethods("GET","POST","PUT","DELETE");
+				}
+			};
 		}
 	}
 
