@@ -1,0 +1,29 @@
+{
+    "project": "rentit",
+    "services": [
+        {
+            "id": "rentit",
+            "apps": [
+                {
+                    "id": "rentit",
+                    "domain": {
+                        "uri": "teamrr-rentit.sloppy.zone"
+                    },
+                    "mem": 1024,
+                    "image": "teamrr/rentit",
+                    "instances": 1,
+                    "port_mappings": [
+                        {
+                            "container_port": 8080
+                        }
+                    ],
+                    "env": {
+                        "POSTGRES": "postgres",
+                        "POSTGRES_USERNAME": "postgres",
+                        "POSTGRES_PASSWORD": "apples"
+                    }
+                }
+            ]
+        }
+    ]
+}
